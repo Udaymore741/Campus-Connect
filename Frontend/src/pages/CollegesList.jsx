@@ -27,11 +27,11 @@ export default function CollegesList() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">      
+    <div className="min-h-screen bg-background">
       <main className="container max-w-7xl mx-auto px-4 pt-28 pb-16">
         <h1 className="text-3xl font-bold mb-4 text-foreground">Colleges</h1>
         <p className="text-muted-foreground mb-8">Browse and connect with college communities</p>
-        
+
         <div className="grid gap-6">
           {colleges.map((college) => (
             <div
@@ -46,7 +46,7 @@ export default function CollegesList() {
                       Founded in {college.foundedYear}
                     </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div className="bg-muted/50 rounded-lg p-3">
                       <p className="font-semibold text-foreground">{college.members.toLocaleString()}</p>
