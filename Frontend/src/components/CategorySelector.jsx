@@ -1,6 +1,9 @@
 import { categories } from "../data/mockData";
 import { cn } from "@/lib/utils";
 
+/**
+ * @param {{ selectedCategory: string | null, onSelectCategory: (category: string | null) => void }} props
+ */
 export default function CategorySelector({ selectedCategory, onSelectCategory }) {
   return (
     <div className="overflow-x-auto pb-2 -mx-2 px-2">
