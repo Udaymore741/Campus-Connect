@@ -31,8 +31,10 @@ export default function Navbar() {
 
   // Close profile menu when clicking outside
   useEffect(() => {
+    /** @param {MouseEvent} event */
     const handleClickOutside = (event) => {
-      if (showProfileMenu && !event.target.closest('.profile-menu')) {
+      const target = event.target;
+      if (showProfileMenu && target instanceof Element && !target.closest('.profile-menu')) {
         setShowProfileMenu(false);
       }
     };
@@ -42,6 +44,7 @@ export default function Navbar() {
   }, [showProfileMenu]);
 
   // Handle search
+  /** @param {React.FormEvent} e */
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
@@ -64,7 +67,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center">
           <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            CampusQuery
+            CampusConnect
           </span>
         </Link>
 
