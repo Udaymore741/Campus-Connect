@@ -30,10 +30,10 @@ export default function Hero() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 min-[400px]:gap-4 mt-4 animate-slide-up" style={{ animationDelay: "100ms" }}>
             <Link
-              to="/questions"
+              to="/colleges"
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-11 px-8"
             >
-              Browse Questions
+              Browse Colleges
             </Link>
             <Link
               to="/signup"
