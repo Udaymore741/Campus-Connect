@@ -20,7 +20,7 @@ export default function Hero() {
 
           {/* Headline */}
           <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight animate-slide-in">
-            Campus<span className="text-primary">Query</span>
+            Campus<span className="text-primary">Connect</span>
           </h1>
           <p className="max-w-[42rem] text-muted-foreground sm:text-xl animate-slide-up">
             Ask questions. Share knowledge. Connect with students from around the campus.
