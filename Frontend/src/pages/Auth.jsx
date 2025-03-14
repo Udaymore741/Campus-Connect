@@ -1,16 +1,45 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const departments = [
+  "Computer Science",
+  "Electrical Engineering",
+  "Mechanical Engineering",
+  "Civil Engineering",
+  "Chemical Engineering",
+  "Physics",
+  "Mathematics",
+  "Chemistry",
+  "Biology",
+  "Business Administration",
+];
+
+const facultyPositions = [
+  "Professor",
+  "Associate Professor",
+  "Assistant Professor",
+  "Lecturer",
+  "Research Associate",
+  "Teaching Assistant",
+];
+
+const grades = Array.from({ length: 5 }, (_, i) => `${i + 8}th`);
+
 export default function Auth() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
-  const [linkedin, setLinkedin] = useState("");
+  const [role, setRole] = useState("student");
+  const [department, setDepartment] = useState("");
+  const [year, setYear] = useState("");
+  const [passoutYear, setPassoutYear] = useState("");
+  const [position, setPosition] = useState("");
+  const [grade, setGrade] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -24,8 +53,12 @@ export default function Auth() {
     setEmail("");
     setPassword("");
     setName("");
-    setBio("");
-    setLinkedin("");
+    setRole("student");
+    setDepartment("");
+    setYear("");
+    setPassoutYear("");
+    setPosition("");
+    setGrade("");
   };
 
   const handleSubmit = (e) => {
@@ -37,9 +70,26 @@ export default function Auth() {
       return;
     }
     
-    if (mode === "signup" && (!name || !linkedin)) {
-      toast.error("Name and LinkedIn profile are required");
-      return;
+    if (mode === "signup") {
+      if (!name || !role) {
+        toast.error("Name and role are required");
+        return;
+      }
+      
+      if (role === "student" && (!department || !year || !passoutYear)) {
+        toast.error("Please fill in all student details");
+        return;
+      }
+      
+      if (role === "faculty" && !position) {
+        toast.error("Please select your position");
+        return;
+      }
+      
+      if (role === "visitor" && !grade) {
+        toast.error("Please select your grade");
+        return;
+      }
     }
     
     setIsSubmitting(true);
@@ -52,9 +102,14 @@ export default function Auth() {
         toast.success("Account created successfully!");
       }
       setIsSubmitting(false);
-      // Redirect would happen here
+      // Navigate to questions page after successful auth
+      navigate("/questions");
     }, 1500);
   };
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 4 }, (_, i) => currentYear - i);
+  const passoutYears = Array.from({ length: 6 }, (_, i) => currentYear + i);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
@@ -110,6 +165,121 @@ export default function Auth() {
                       required
                     />
                   </div>
+
+                  <div>
+                    <label htmlFor="role" className="block text-sm font-medium mb-1">
+                      Role <span className="text-destructive">*</span>
+                    </label>
+                    <select
+                      id="role"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      required
+                    >
+                      <option value="student">Student</option>
+                      <option value="faculty">Faculty</option>
+                      <option value="visitor">Visitor</option>
+                    </select>
+                  </div>
+
+                  {role === "student" && (
+                    <>
+                      <div>
+                        <label htmlFor="department" className="block text-sm font-medium mb-1">
+                          Department <span className="text-destructive">*</span>
+                        </label>
+                        <select
+                          id="department"
+                          value={department}
+                          onChange={(e) => setDepartment(e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          required
+                        >
+                          <option value="">Select Department</option>
+                          {departments.map((dept) => (
+                            <option key={dept} value={dept}>{dept}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="year" className="block text-sm font-medium mb-1">
+                          Current Year <span className="text-destructive">*</span>
+                        </label>
+                        <select
+                          id="year"
+                          value={year}
+                          onChange={(e) => setYear(e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          required
+                        >
+                          <option value="">Select Year</option>
+                          {years.map((y) => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="passoutYear" className="block text-sm font-medium mb-1">
+                          Expected Passout Year <span className="text-destructive">*</span>
+                        </label>
+                        <select
+                          id="passoutYear"
+                          value={passoutYear}
+                          onChange={(e) => setPassoutYear(e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          required
+                        >
+                          <option value="">Select Passout Year</option>
+                          {passoutYears.map((y) => (
+                            <option key={y} value={y}>{y}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
+                  )}
+
+                  {role === "faculty" && (
+                    <div>
+                      <label htmlFor="position" className="block text-sm font-medium mb-1">
+                        Position <span className="text-destructive">*</span>
+                      </label>
+                      <select
+                        id="position"
+                        value={position}
+                        onChange={(e) => setPosition(e.target.value)}
+                        className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        required
+                      >
+                        <option value="">Select Position</option>
+                        {facultyPositions.map((pos) => (
+                          <option key={pos} value={pos}>{pos}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {role === "visitor" && (
+                    <div>
+                      <label htmlFor="grade" className="block text-sm font-medium mb-1">
+                        Grade <span className="text-destructive">*</span>
+                      </label>
+                      <select
+                        id="grade"
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        required
+                      >
+                        <option value="">Select Grade</option>
+                        {grades.map((g) => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </>
               )}
               
@@ -155,39 +325,6 @@ export default function Auth() {
                   </button>
                 </div>
               </div>
-              
-              {mode === "signup" && (
-                <>
-                  <div>
-                    <label htmlFor="bio" className="block text-sm font-medium mb-1">
-                      Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell us about yourself..."
-                      rows={3}
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="linkedin" className="block text-sm font-medium mb-1">
-                      LinkedIn Profile <span className="text-destructive">*</span>
-                    </label>
-                    <input
-                      id="linkedin"
-                      type="url"
-                      value={linkedin}
-                      onChange={(e) => setLinkedin(e.target.value)}
-                      placeholder="https://linkedin.com/in/yourprofile"
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      required
-                    />
-                  </div>
-                </>
-              )}
               
               <button
                 type="submit"
