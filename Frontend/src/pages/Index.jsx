@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import CollegeCard from "../components/CollegeCard";
 import { getCollegesSortedByActivity } from "../data/mockData";
@@ -13,9 +12,7 @@ export default function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      
+    <div className="min-h-screen">      
       <main>
         <Hero />
         
@@ -102,12 +99,14 @@ export default function Index() {
                 <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
                   Create an account today to start connecting with your college peers and get the help you need.
                 </p>
-                <Link 
-                  to="/signup" 
-                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-11 px-8"
-                >
-                  Sign Up Now
-                </Link>
+                <div className="flex space-x-4">
+                  <Link 
+                    to="/colleges" 
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-11 px-8"
+                  >
+                    Browse Colleges
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -140,7 +139,7 @@ export default function Index() {
             </div>
             
             <div className="mt-4 md:mt-0 text-sm text-muted-foreground">
-              © 2024 CampusConnect. All rights reserved.
+              2024 CampusConnect. All rights reserved.
             </div>
           </div>
         </div>
