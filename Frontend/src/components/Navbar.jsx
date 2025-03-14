@@ -1,13 +1,23 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Search, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Menu, X, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 
+// Mock authenticated user - in a real app, this would come from your auth context/state management
+const mockAuthUser = {
+  id: 1,
+  name: "John Doe",
+  avatar: "",
+};
+
 export default function Navbar() {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // For demo purposes
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   
   // Detect when page is scrolled
   useEffect(() => {
@@ -19,11 +29,28 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProfileMenu && !event.target.closest('.profile-menu')) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showProfileMenu]);
+
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
     // Implement search functionality
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    navigate('/login');
   };
 
   return (
@@ -77,23 +104,82 @@ export default function Navbar() {
         {/* User Actions */}
         <div className="hidden md:flex items-center space-x-4">
           <ThemeToggle />
-          <Link 
-            to="/login" 
-            className="px-4 py-2 text-primary hover:text-primary/80 transition-colors"
-          >
-            Log In
-          </Link>
-          <Link 
-            to="/signup" 
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-colors"
-          >
-            Sign Up
-          </Link>
+          {isAuthenticated ? (
+            <div className="relative profile-menu">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary transition-colors"
+              >
+                {mockAuthUser.avatar ? (
+                  <img
+                    src={mockAuthUser.avatar}
+                    alt={mockAuthUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                )}
+              </button>
+              
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 py-2 bg-card rounded-lg shadow-lg border border-border animate-fade-in">
+                  <div className="px-4 py-2 border-b border-border">
+                    <p className="font-medium truncate">{mockAuthUser.name}</p>
+                  </div>
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2 text-sm text-foreground/80 hover:text-primary hover:bg-muted/50 transition-colors"
+                    onClick={() => setShowProfileMenu(false)}
+                  >
+                    View Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-muted/50 transition-colors"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link 
+                to="/login" 
+                className="px-4 py-2 text-primary hover:text-primary/80 transition-colors"
+              >
+                Log In
+              </Link>
+              <Link 
+                to="/signup" 
+                className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-colors"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-3 md:hidden">
           <ThemeToggle />
+          {isAuthenticated && (
+            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20">
+              {mockAuthUser.avatar ? (
+                <img
+                  src={mockAuthUser.avatar}
+                  alt={mockAuthUser.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+            </Link>
+          )}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-2 rounded-md text-foreground"
@@ -131,20 +217,29 @@ export default function Navbar() {
             <Link to="/about" className="block py-2 text-foreground/80 hover:text-primary">
               About
             </Link>
-            <div className="pt-2 flex flex-col space-y-2">
-              <Link 
-                to="/login" 
-                className="px-4 py-2 text-center text-primary hover:text-primary/80 border border-primary/20 rounded-md"
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="w-full text-left py-2 text-destructive hover:text-destructive/80"
               >
-                Log In
-              </Link>
-              <Link 
-                to="/signup" 
-                className="px-4 py-2 text-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
-              >
-                Sign Up
-              </Link>
-            </div>
+                Log Out
+              </button>
+            ) : (
+              <div className="pt-2 flex flex-col space-y-2">
+                <Link 
+                  to="/login" 
+                  className="px-4 py-2 text-center text-primary hover:text-primary/80 border border-primary/20 rounded-md"
+                >
+                  Log In
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="px-4 py-2 text-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
