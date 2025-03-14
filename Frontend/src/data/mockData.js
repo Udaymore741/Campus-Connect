@@ -204,4 +204,51 @@ export const searchQuestions = (query) => {
       question.title.toLowerCase().includes(lowercaseQuery) || 
       question.content.toLowerCase().includes(lowercaseQuery)
   );
+};
+
+export const colleges = [
+  {
+    id: 1,
+    name: "MIT",
+    description: "Massachusetts Institute of Technology",
+    activeUsers: 15000,
+    questionsCount: 2500,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+  },
+  {
+    id: 2,
+    name: "Stanford University",
+    description: "Stanford University, California",
+    activeUsers: 12000,
+    questionsCount: 2000,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+  },
+  {
+    id: 3,
+    name: "Harvard University",
+    description: "Harvard University, Massachusetts",
+    activeUsers: 13000,
+    questionsCount: 1800,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+  },
+  {
+    id: 4,
+    name: "UC Berkeley",
+    description: "University of California, Berkeley",
+    activeUsers: 11000,
+    questionsCount: 1600,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+  },
+  {
+    id: 5,
+    name: "Oxford University",
+    description: "University of Oxford, UK",
+    activeUsers: 10000,
+    questionsCount: 1500,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+  }
+];
+
+export const getCollegesSortedByActivity = () => {
+  return [...colleges].sort((a, b) => b.activeUsers - a.activeUsers);
 }; 
