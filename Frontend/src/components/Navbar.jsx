@@ -59,11 +59,11 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/questions" className="text-foreground/80 hover:text-primary transition-colors">
-            Questions
+          <Link to="/my-hubs" className="text-foreground/80 hover:text-primary transition-colors">
+            My Hubs
           </Link>
-          <Link to="/categories" className="text-foreground/80 hover:text-primary transition-colors">
-            Categories
+          <Link to="/colleges" className="text-foreground/80 hover:text-primary transition-colors">
+            Colleges
           </Link>
           <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
             About
@@ -168,52 +168,58 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden py-4 px-4 mt-2 rounded-lg glass animate-fade-in">
-          <form 
-            onSubmit={handleSearch}
-            className="relative mb-4"
+      <div className={cn(
+        "fixed inset-0 bg-background/80 backdrop-blur-sm md:hidden transition-opacity duration-300",
+        isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}>
+        <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="absolute top-5 right-5"
           >
-            <input
-              type="text"
-              placeholder="Search questions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-            <button type="submit" className="absolute right-3 top-2">
-              <Search className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </form>
-          <div className="space-y-3">
-            <Link to="/questions" className="block py-2 text-foreground/80 hover:text-primary">
-              Questions
-            </Link>
-            <Link to="/categories" className="block py-2 text-foreground/80 hover:text-primary">
-              Categories
-            </Link>
-            <Link to="/about" className="block py-2 text-foreground/80 hover:text-primary">
-              About
-            </Link>
-            <Link to="/admin" className="flex items-center gap-2 py-2 text-primary hover:text-primary/80">
-              <ShieldCheck className="w-4 h-4" />
-              Admin Dashboard
-            </Link>
-            <Link to="/profile" className="block py-2 text-foreground/80 hover:text-primary">
-              My Profile
-            </Link>
-            <Link to="/activity" className="block py-2 text-foreground/80 hover:text-primary">
-              My Activity
+            <X className="h-6 w-6" />
+          </button>
+          
+          <div className="mt-8 space-y-4">
+            <Link
+              to="/my-hubs"
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-lg hover:text-primary transition-colors"
+            >
+              My Hubs
             </Link>
             <Link
-              to="/login"
-              className="block py-2 text-destructive hover:text-destructive/80"
+              to="/colleges"
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-lg hover:text-primary transition-colors"
             >
-              Sign Out
+              Colleges
             </Link>
+            <Link
+              to="/about"
+              onClick={() => setIsMenuOpen(false)}
+              className="block py-2 text-lg hover:text-primary transition-colors"
+            >
+              About
+            </Link>
+            
+            <div className="pt-4 mt-4 border-t border-border">
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  placeholder="Search questions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </form>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 } 
