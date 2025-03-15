@@ -148,7 +148,12 @@ export const questions = [
     title: "Where can I find tutoring resources on campus?",
     content: "I'm struggling with some of my intro classes and would like to find tutoring. Are there any free resources available on campus?",
     author: users[0],
-    category: categories[0],
+    category: {
+      id: "cat-2",
+      name: "Courses & Academics",
+      slug: "courses-academics",
+      description: "Questions about courses, majors, and academic programs"
+    },
     upvotes: 24,
     likes: 18,
     answers: [answers[0], answers[1], answers[2]],
@@ -160,7 +165,12 @@ export const questions = [
     title: "When are the next job fairs happening?",
     content: "I'm starting to look for internships for next summer. Does anyone know when the next campus job fairs are scheduled?",
     author: users[1],
-    category: categories[2],
+    category: {
+      id: "cat-3",
+      name: "Placement & Internship",
+      slug: "placement-internship",
+      description: "Questions about job placements and internship opportunities"
+    },
     upvotes: 19,
     likes: 12,
     answers: [answers[3]],
@@ -172,7 +182,12 @@ export const questions = [
     title: "What software do you recommend for research papers?",
     content: "I have several research papers due this semester. What software or tools do you recommend for writing and organizing research?",
     author: users[2],
-    category: categories[4],
+    category: {
+      id: "cat-9",
+      name: "Academic Projects",
+      slug: "academic-projects",
+      description: "Questions about academic and research projects"
+    },
     upvotes: 31,
     likes: 26,
     answers: [answers[4]],
@@ -184,7 +199,12 @@ export const questions = [
     title: "Tips for managing course workload?",
     content: "I'm taking 18 credits this semester and feeling overwhelmed. Does anyone have tips for managing a heavy course load while still maintaining a decent sleep schedule?",
     author: users[0],
-    category: categories[0],
+    category: {
+      id: "cat-2",
+      name: "Courses & Academics",
+      slug: "courses-academics",
+      description: "Questions about courses, majors, and academic programs"
+    },
     upvotes: 45,
     likes: 38,
     answers: [],
@@ -196,7 +216,12 @@ export const questions = [
     title: "Best dorms for transfer students?",
     content: "I'm transferring next semester and trying to decide on housing. Which dorms would you recommend for a transfer student who wants a social atmosphere but also quiet study spaces?",
     author: users[1],
-    category: categories[1],
+    category: {
+      id: "cat-1",
+      name: "Admissions",
+      slug: "admissions",
+      description: "Questions about college admissions process and requirements"
+    },
     upvotes: 16,
     likes: 12,
     answers: [],
@@ -212,7 +237,7 @@ export const getQuestionsSortedByUpvotes = () => {
 
 // Get questions by category
 export const getQuestionsByCategory = (categorySlug) => {
-  return questions.filter(question => question.category.slug === categorySlug);
+  return questions.filter(question => question.category.slug.toLowerCase() === categorySlug.toLowerCase());
 };
 
 // Get question by ID
@@ -237,7 +262,10 @@ export const colleges = [
     description: "Massachusetts Institute of Technology",
     activeUsers: 15000,
     questionsCount: 2500,
-    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+    members: 18000,
+    foundedYear: 1861,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop",
+    isJoined: false
   },
   {
     id: 2,
@@ -245,31 +273,21 @@ export const colleges = [
     description: "Stanford University, California",
     activeUsers: 12000,
     questionsCount: 2000,
-    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+    members: 16000,
+    foundedYear: 1885,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop",
+    isJoined: false
   },
   {
     id: 3,
     name: "Harvard University",
     description: "Harvard University, Massachusetts",
-    activeUsers: 13000,
-    questionsCount: 1800,
-    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
-  },
-  {
-    id: 4,
-    name: "UC Berkeley",
-    description: "University of California, Berkeley",
-    activeUsers: 11000,
-    questionsCount: 1600,
-    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
-  },
-  {
-    id: 5,
-    name: "Oxford University",
-    description: "University of Oxford, UK",
-    activeUsers: 10000,
-    questionsCount: 1500,
-    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop"
+    activeUsers: 14000,
+    questionsCount: 2200,
+    members: 17000,
+    foundedYear: 1636,
+    image: "https://images.unsplash.com/photo-1610720685796-45da0a1b0374?w=500&h=300&fit=crop",
+    isJoined: false
   }
 ];
 
