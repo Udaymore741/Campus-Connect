@@ -194,7 +194,12 @@ export default function Activity() {
                     {question.comments} comments
                   </span>
                   <span>{formatDistanceToNow(question.createdAt)} ago</span>
-                  <span className="text-primary">{question.category}</span>
+                  <Link 
+                    to={`/questions/${question.category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
+                    className="text-primary hover:underline"
+                  >
+                    {question.category}
+                  </Link>
                 </div>
               </Card>
             ))}
