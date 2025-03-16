@@ -1,15 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
 import Hero from "../components/Hero";
 import CollegeCard from "../components/CollegeCard";
-import { getCollegesSortedByActivity } from "../data/mockData";
 
 export default function Index() {
-  const topColleges = getCollegesSortedByActivity().slice(0, 3);
+  const [topColleges, setTopColleges] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     window.scrollTo(0, 0);
+    fetchColleges();
   }, []);
+
+  const fetchColleges = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/colleges");
+      // Get top 3 colleges by active users
+      const sortedColleges = response.data.sort((a, b) => (b.activeUsers || 0) - (a.activeUsers || 0));
+      setTopColleges(sortedColleges.slice(0, 3));
+    } catch (error) {
+      toast.error("Failed to fetch colleges");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">      
@@ -31,14 +47,20 @@ export default function Index() {
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topColleges.map((college) => (
-                <CollegeCard 
-                  key={college.id} 
-                  college={college}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {topColleges.map((college) => (
+                  <CollegeCard 
+                    key={college._id} 
+                    college={college}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
         
