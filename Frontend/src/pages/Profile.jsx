@@ -1,149 +1,174 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Camera } from "lucide-react";
-import Navbar from "../components/Navbar";
-
-// Mock user data - in a real app, this would come from your backend
-const mockUser = {
-  id: 1,
-  name: "John Doe",
-  email: "john.doe@example.com",
-  role: "student",
-  department: "Computer Science",
-  year: "2024",
-  passoutYear: "2026",
-  position: null,
-  grade: null,
-  avatar: "",
-  bio: "Computer Science student passionate about web development and AI.",
-  joinedDate: "2024-03-01",
-};
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Profile() {
-  const [user] = useState(mockUser);
-  const [imagePreview, setImagePreview] = useState("");
-  
-  /** @param {React.ChangeEvent<HTMLInputElement>} e */
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setImagePreview(reader.result);
+  const { user, updateProfile, logout } = useAuth();
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    
+    // Fetch complete user data
+    fetch('http://localhost:8080/api/profile', {
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message) {
+          toast.error(data.message);
+        } else {
+          setUserData(data);
         }
-      };
-      reader.readAsDataURL(file);
+      })
+      .catch(err => {
+        console.error('Error fetching profile:', err);
+        toast.error('Failed to load profile data');
+      });
+  }, [user, navigate]);
+
+  if (!user || !userData) {
+    return null;
+  }
+
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("profilePicture", file);
+
+    setIsUpdating(true);
+    try {
+      const result = await updateProfile(formData);
+      if (result.success) {
+        toast.success("Profile picture updated successfully");
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      toast.error("Failed to update profile picture");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/auth");
+  };
+
+  const getRoleSpecificInfo = () => {
+    switch (userData.role) {
+      case "student":
+        return (
+          <>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-muted-foreground">Department</span>
+              <span className="font-medium">{userData.department}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-muted-foreground">Current Year</span>
+              <span className="font-medium">{userData.currentYear}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-muted-foreground">Expected Passout Year</span>
+              <span className="font-medium">{userData.passoutYear}</span>
+            </div>
+          </>
+        );
+      case "faculty":
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-muted-foreground">Position</span>
+            <span className="font-medium">{userData.position}</span>
+          </div>
+        );
+      case "visitor":
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-muted-foreground">Grade</span>
+            <span className="font-medium">{userData.grade}</span>
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-card rounded-xl shadow-lg border border-border overflow-hidden">
-          {/* Cover Image */}
-          <div className="h-48 bg-gradient-to-r from-primary/20 to-accent/20" />
-          
-          {/* Profile Section */}
-          <div className="px-6 pb-6">
-            <div className="relative -mt-20 mb-6">
-              <div className="relative inline-block">
-                <div className="w-32 h-32 rounded-full border-4 border-background overflow-hidden bg-muted">
-                  {(imagePreview || user.avatar) ? (
-                    <img
-                      src={imagePreview || user.avatar}
-                      alt={user.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl font-semibold text-muted-foreground">
-                      {user.name[0]}
-                    </div>
-                  )}
-                </div>
-                <label
-                  htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors"
-                >
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    id="avatar-upload"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageChange}
+    <div className="min-h-screen bg-muted/30 py-12 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-card rounded-xl shadow-lg border border-border p-6">
+          <div className="flex flex-col items-center gap-6">
+            {/* Profile Picture */}
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-muted">
+                {userData.profilePicture ? (
+                  <img
+                    src={`http://localhost:8080${userData.profilePicture}`}
+                    alt={userData.name}
+                    className="w-full h-full object-cover"
                   />
-                </label>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-4xl font-medium">
+                    {userData.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUpdating}
+                className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <Camera className="w-4 h-4" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="hidden"
+              />
             </div>
-            
+
             {/* User Info */}
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-2xl font-bold">{user.name}</h1>
-                <p className="text-muted-foreground">{user.email}</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium mb-1">Role</h3>
-                    <p className="text-muted-foreground capitalize">{user.role}</p>
-                  </div>
-                  
-                  {user.role === "student" && (
-                    <>
-                      <div>
-                        <h3 className="font-medium mb-1">Department</h3>
-                        <p className="text-muted-foreground">{user.department}</p>
-                      </div>
-                      <div>
-                        <h3 className="font-medium mb-1">Current Year</h3>
-                        <p className="text-muted-foreground">{user.year}</p>
-                      </div>
-                      <div>
-                        <h3 className="font-medium mb-1">Expected Passout Year</h3>
-                        <p className="text-muted-foreground">{user.passoutYear}</p>
-                      </div>
-                    </>
-                  )}
-                  
-                  {user.role === "faculty" && (
-                    <div>
-                      <h3 className="font-medium mb-1">Position</h3>
-                      <p className="text-muted-foreground">{user.position}</p>
-                    </div>
-                  )}
-                  
-                  {user.role === "visitor" && (
-                    <div>
-                      <h3 className="font-medium mb-1">Grade</h3>
-                      <p className="text-muted-foreground">{user.grade}</p>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium mb-1">Bio</h3>
-                    <p className="text-muted-foreground">{user.bio}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium mb-1">Member Since</h3>
-                    <p className="text-muted-foreground">
-                      {new Date(user.joinedDate).toLocaleDateString("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold">{userData.name}</h1>
+              <p className="text-muted-foreground">{userData.email}</p>
+              <span className="inline-block px-3 py-1 mt-2 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                {userData.role.charAt(0).toUpperCase() + userData.role.slice(1)}
+              </span>
             </div>
+
+            {/* Role-specific Information */}
+            <div className="w-full grid gap-4 mt-4">
+              {getRoleSpecificInfo()}
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="mt-6 px-6 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+            >
+              Log Out
+            </button>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 } 
