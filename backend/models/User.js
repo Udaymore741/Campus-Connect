@@ -2,15 +2,50 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  username: {
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
+    lowercase: true
   },
   password: {
     type: String,
     required: true
+  },
+  role: {
+    type: String,
+    required: true,
+    enum: ['student', 'faculty', 'visitor']
+  },
+  profilePicture: {
+    type: String,
+    default: ''
+  },
+  department: {
+    type: String,
+    required: function() { return this.role === 'student'; }
+  },
+  currentYear: {
+    type: Number,
+    required: function() { return this.role === 'student'; }
+  },
+  passoutYear: {
+    type: Number,
+    required: function() { return this.role === 'student'; }
+  },
+  position: {
+    type: String,
+    required: function() { return this.role === 'faculty'; }
+  },
+  grade: {
+    type: String,
+    required: function() { return this.role === 'visitor'; }
   }
 }, { timestamps: true });
 
