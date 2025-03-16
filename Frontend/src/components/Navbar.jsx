@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, Menu, X, User, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +41,14 @@ export default function Navbar() {
   /** @param {React.FormEvent} e */
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchQuery);
+    if (searchQuery.trim()) {
+      navigate(`/questions?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/auth');
   };
 
   return (
@@ -59,105 +68,144 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/my-hubs" className="text-foreground/80 hover:text-primary transition-colors">
-            My Hubs
-          </Link>
-          <Link to="/colleges" className="text-foreground/80 hover:text-primary transition-colors">
-            Colleges
-          </Link>
-          <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
-            About
-          </Link>
+          {user ? (
+            <>
+              <Link to="/my-hubs" className="text-foreground/80 hover:text-primary transition-colors">
+                My Hubs
+              </Link>
+              <Link to="/colleges" className="text-foreground/80 hover:text-primary transition-colors">
+                Colleges
+              </Link>
+              <Link to="/about" className="text-foreground/80 hover:text-primary transition-colors">
+                About
+              </Link>
+            </>
+          ) : (
+            <Link to="/auth" className="text-foreground/80 hover:text-primary transition-colors">
+              Sign In
+            </Link>
+          )}
         </div>
 
         {/* Search Form */}
-        <form 
-          onSubmit={handleSearch}
-          className={cn(
-            "hidden md:flex relative items-center transition-all duration-300",
-            isScrolled ? "w-64" : "w-72"
-          )}
-        >
-          <input
-            type="text"
-            placeholder="Search questions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-          <button type="submit" className="absolute right-3">
-            <Search className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </form>
+        {user && (
+          <form 
+            onSubmit={handleSearch}
+            className={cn(
+              "hidden md:flex relative items-center transition-all duration-300",
+              isScrolled ? "w-64" : "w-72"
+            )}
+          >
+            <input
+              type="text"
+              placeholder="Search questions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+            <button type="submit" className="absolute right-3">
+              <Search className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </form>
+        )}
 
         {/* User Actions */}
         <div className="hidden md:flex items-center space-x-4">
           <ThemeToggle />
-          {/* Admin Button */}
-          <Link
-            to="/admin"
-            className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 transition-colors rounded-full"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Admin Panel</span>
-          </Link>
-          
-          {/* Profile Menu */}
-          <div className="relative profile-menu">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary transition-colors"
-            >
-              <div className="w-full h-full flex items-center justify-center bg-muted">
-                <User className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </button>
-            
-            {showProfileMenu && (
-              <div className="profile-menu absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border">
-                <div className="py-1">
-                  <Link
-                    to="/admin"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    Admin Dashboard
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    My Profile
-                  </Link>
-                  <Link
-                    to="/activity"
-                    className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    My Activity
-                  </Link>
-                  <Link
-                    to="/login"
-                    className="block w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                  >
-                    Sign Out
-                  </Link>
+          {user ? (
+            <div className="relative profile-menu">
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary transition-colors"
+              >
+                {user.profilePicture ? (
+                  <img
+                    src={`http://localhost:5000${user.profilePicture}`}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                    <span className="text-lg font-medium text-primary">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </button>
+              
+              {showProfileMenu && (
+                <div className="profile-menu absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border">
+                  <div className="py-1">
+                    {user.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      My Profile
+                    </Link>
+                    <Link
+                      to="/activity"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      My Activity
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/auth"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-3 md:hidden">
           <ThemeToggle />
-          <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20">
-            <div className="w-full h-full flex items-center justify-center bg-muted">
-              <User className="w-4 h-4 text-muted-foreground" />
-            </div>
-          </Link>
+          {user ? (
+            <>
+              <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20">
+                {user.profilePicture ? (
+                  <img
+                    src={`http://localhost:5000${user.profilePicture}`}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                    <span className="text-sm font-medium text-primary">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </Link>
+            </>
+          ) : (
+            <Link to="/auth" className="text-foreground/80 hover:text-primary transition-colors">
+              Sign In
+            </Link>
+          )}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-2 rounded-md text-foreground"
@@ -181,42 +229,73 @@ export default function Navbar() {
           </button>
           
           <div className="mt-8 space-y-4">
-            <Link
-              to="/my-hubs"
-              onClick={() => setIsMenuOpen(false)}
-              className="block py-2 text-lg hover:text-primary transition-colors"
-            >
-              My Hubs
-            </Link>
-            <Link
-              to="/colleges"
-              onClick={() => setIsMenuOpen(false)}
-              className="block py-2 text-lg hover:text-primary transition-colors"
-            >
-              Colleges
-            </Link>
-            <Link
-              to="/about"
-              onClick={() => setIsMenuOpen(false)}
-              className="block py-2 text-lg hover:text-primary transition-colors"
-            >
-              About
-            </Link>
-            
-            <div className="pt-4 mt-4 border-t border-border">
-              <form onSubmit={handleSearch} className="relative">
-                <input
-                  type="text"
-                  placeholder="Search questions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </form>
-            </div>
+            {user ? (
+              <>
+                <Link
+                  to="/my-hubs"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2 text-lg hover:text-primary transition-colors"
+                >
+                  My Hubs
+                </Link>
+                <Link
+                  to="/colleges"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2 text-lg hover:text-primary transition-colors"
+                >
+                  Colleges
+                </Link>
+                <Link
+                  to="/about"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-2 text-lg hover:text-primary transition-colors"
+                >
+                  About
+                </Link>
+                
+                <div className="pt-4 mt-4 border-t border-border">
+                  <form onSubmit={handleSearch} className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search questions..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Search className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </form>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-border">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block py-2 text-lg hover:text-primary transition-colors"
+                  >
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="block w-full text-left py-2 text-lg text-destructive hover:text-destructive/80 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                onClick={() => setIsMenuOpen(false)}
+                className="block py-2 text-lg hover:text-primary transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </div>
