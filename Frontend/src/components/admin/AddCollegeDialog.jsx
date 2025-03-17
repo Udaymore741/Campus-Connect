@@ -15,9 +15,13 @@ import { Label } from "@/components/ui/label";
  * @property {string} location
  * @property {string} website
  * @property {string} departments
- * @property {string} establishedYear
+ * @property {string} established
  * @property {string} accreditation
  * @property {string} ranking
+ * @property {string} contactInfo
+ * @property {string} courses
+ * @property {string} facilities
+ * @property {string} achievements
  * @property {File|null} image
  */
 
@@ -36,9 +40,13 @@ function AddCollegeDialog({ open, onOpenChange, onSuccess }) {
     location: "",
     website: "",
     departments: "",
-    establishedYear: "",
+    established: "",
     accreditation: "",
     ranking: "",
+    contactInfo: "",
+    courses: "",
+    facilities: "",
+    achievements: "",
     image: null
   };
   const [formData, setFormData] = useState(initialFormData);
@@ -55,6 +63,10 @@ function AddCollegeDialog({ open, onOpenChange, onSuccess }) {
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'departments' && value) {
           data.append(key, JSON.stringify(value.split(',').map(d => d.trim())));
+        } else if (key === 'courses' && value) {
+          data.append(key, JSON.stringify(value.split(',').map(c => c.trim())));
+        } else if (key === 'facilities' && value) {
+          data.append(key, JSON.stringify(value.split(',').map(f => f.trim())));
         } else if (key === 'image' && value) {
           data.append(key, value);
         } else if (value) {
@@ -103,106 +115,150 @@ function AddCollegeDialog({ open, onOpenChange, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-hidden">
         <DialogHeader className="space-y-1">
           <DialogTitle>Add New College</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">College Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange(e, 'name')}
+          <div className="overflow-y-auto max-h-[calc(90vh-180px)] pr-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">College Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange(e, 'name')}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location *</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange(e, 'location')}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="established">Established *</Label>
+                <Input
+                  id="established"
+                  value={formData.established}
+                  onChange={(e) => handleInputChange(e, 'established')}
+                  required
+                  placeholder="e.g., 1990"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contactInfo">Contact Info *</Label>
+                <Input
+                  id="contactInfo"
+                  value={formData.contactInfo}
+                  onChange={(e) => handleInputChange(e, 'contactInfo')}
+                  required
+                  placeholder="e.g., Phone, Email"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="website">Website</Label>
+                <Input
+                  id="website"
+                  type="url"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange(e, 'website')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="departments">Departments (comma-separated)</Label>
+                <Input
+                  id="departments"
+                  value={formData.departments}
+                  onChange={(e) => handleInputChange(e, 'departments')}
+                  placeholder="CS, IT, ECE"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="courses">Courses (comma-separated)</Label>
+                <Input
+                  id="courses"
+                  value={formData.courses}
+                  onChange={(e) => handleInputChange(e, 'courses')}
+                  placeholder="B.Tech, M.Tech, MBA"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="facilities">Facilities (comma-separated)</Label>
+                <Input
+                  id="facilities"
+                  value={formData.facilities}
+                  onChange={(e) => handleInputChange(e, 'facilities')}
+                  placeholder="Library, Sports, Labs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ranking">Ranking</Label>
+                <Input
+                  id="ranking"
+                  type="number"
+                  value={formData.ranking}
+                  onChange={(e) => handleInputChange(e, 'ranking')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="accreditation">Accreditation</Label>
+                <Input
+                  id="accreditation"
+                  value={formData.accreditation}
+                  onChange={(e) => handleInputChange(e, 'accreditation')}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image">College Image *</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange(e, 'description')}
                 required
+                rows={4}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => handleInputChange(e, 'location')}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                value={formData.website}
-                onChange={(e) => handleInputChange(e, 'website')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="departments">Departments (comma-separated)</Label>
-              <Input
-                id="departments"
-                value={formData.departments}
-                onChange={(e) => handleInputChange(e, 'departments')}
-                placeholder="CS, IT, ECE"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="establishedYear">Established Year</Label>
-              <Input
-                id="establishedYear"
-                type="number"
-                value={formData.establishedYear}
-                onChange={(e) => handleInputChange(e, 'establishedYear')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ranking">Ranking</Label>
-              <Input
-                id="ranking"
-                type="number"
-                value={formData.ranking}
-                onChange={(e) => handleInputChange(e, 'ranking')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="accreditation">Accreditation</Label>
-              <Input
-                id="accreditation"
-                value={formData.accreditation}
-                onChange={(e) => handleInputChange(e, 'accreditation')}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="image">College Image *</Label>
-              <Input
-                id="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                required
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="achievements">Achievements</Label>
+              <Textarea
+                id="achievements"
+                value={formData.achievements}
+                onChange={(e) => handleInputChange(e, 'achievements')}
+                rows={3}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange(e, 'description')}
-              required
-              rows={4}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-4 border-t mt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
