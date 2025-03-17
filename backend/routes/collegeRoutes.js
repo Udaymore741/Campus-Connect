@@ -37,12 +37,25 @@ router.get('/:id', async (req, res) => {
 // Add new college (admin only)
 router.post('/', adminAuth, upload.single('image'), async (req, res) => {
   try {
-    const { name, description, location, website, departments, establishedYear, accreditation, ranking } = req.body;
+    const { 
+      name, 
+      description, 
+      location, 
+      established,
+      courses,
+      facilities,
+      achievements,
+      contactInfo,
+      website, 
+      departments, 
+      accreditation, 
+      ranking 
+    } = req.body;
 
-    if (!name || !description || !location || !req.file) {
+    if (!name || !description || !location || !established || !contactInfo || !req.file) {
       return res.status(400).json({
         message: 'Missing required fields',
-        required: ['name', 'description', 'location', 'image']
+        required: ['name', 'description', 'location', 'established', 'contactInfo', 'image']
       });
     }
 
@@ -55,10 +68,14 @@ router.post('/', adminAuth, upload.single('image'), async (req, res) => {
       name,
       description,
       location,
+      established,
+      courses: courses ? JSON.parse(courses) : [],
+      facilities: facilities ? JSON.parse(facilities) : [],
+      achievements,
+      contactInfo,
       image: `/uploads/colleges/${req.file.filename}`,
       website,
       departments: departments ? JSON.parse(departments) : [],
-      establishedYear: establishedYear ? parseInt(establishedYear) : undefined,
       accreditation,
       ranking: ranking ? parseInt(ranking) : undefined,
       createdBy: req.userId
@@ -88,12 +105,16 @@ router.patch('/:id', adminAuth, upload.single('image'), async (req, res) => {
       updates.image = `/uploads/colleges/${req.file.filename}`;
     }
 
-    if (updates.departments) {
-      updates.departments = JSON.parse(updates.departments);
+    if (updates.courses) {
+      updates.courses = JSON.parse(updates.courses);
     }
 
-    if (updates.establishedYear) {
-      updates.establishedYear = parseInt(updates.establishedYear);
+    if (updates.facilities) {
+      updates.facilities = JSON.parse(updates.facilities);
+    }
+
+    if (updates.departments) {
+      updates.departments = JSON.parse(updates.departments);
     }
 
     if (updates.ranking) {
