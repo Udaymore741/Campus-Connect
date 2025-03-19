@@ -13,6 +13,7 @@ const User = require('./models/User');
 const auth = require('./middleware/auth');
 const upload = require('./middleware/upload');
 const collegeRoutes = require('./routes/collegeRoutes');
+const enrollmentRoutes = require('./routes/enrollment');
 
 const app = express();
 
@@ -44,6 +45,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 
 // Use college routes
 app.use('/api/colleges', collegeRoutes);
+
+// Use enrollment routes
+app.use('/api/enrollment', enrollmentRoutes);
 
 // Create admin user if it doesn't exist
 const createAdminUser = async () => {
