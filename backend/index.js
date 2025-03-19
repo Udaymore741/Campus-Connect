@@ -98,7 +98,8 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  process.exit(1);
+  // Don't exit the process, just log the error
+  console.error('Failed to connect to MongoDB. Please check your connection string and try again.');
 });
 
 // Handle MongoDB connection events
@@ -108,6 +109,17 @@ mongoose.connection.on('error', err => {
 
 mongoose.connection.on('disconnected', () => {
   console.log('MongoDB disconnected');
+});
+
+// Add process error handlers
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // Don't exit the process
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  // Don't exit the process
 });
 
 // Auth Routes
@@ -328,6 +340,40 @@ app.get('/api/auth/status', auth, async (req, res) => {
     });
   } catch (error) {
     res.status(401).json({ authenticated: false });
+  }
+});
+
+// Get all users (admin only)
+app.get('/api/users', auth, async (req, res) => {
+  try {
+    if (!req.user) {
+      console.error('User not found in request');
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    if (!req.user.isAdmin) {
+      console.error('User is not admin:', req.user.role);
+      return res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+
+    const users = await User.find({}, '-password');
+    
+    // Add full URL to profile pictures
+    const usersWithFullUrls = users.map(user => {
+      const userData = user.toObject();
+      if (userData.profilePicture) {
+        userData.profilePicture = `http://localhost:8080${userData.profilePicture}`;
+      }
+      return userData;
+    });
+
+    res.json(usersWithFullUrls);
+  } catch (error) {
+    console.error('Error in /api/users endpoint:', error);
+    res.status(500).json({ 
+      message: 'Error fetching users',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
