@@ -50,7 +50,17 @@ const userSchema = new mongoose.Schema({
   grade: {
     type: String,
     required: function() { return this.role === 'visitor'; }
-  }
+  },
+  enrolledColleges: [{
+    college: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'College'
+    },
+    enrolledAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, { timestamps: true });
 
 // Hash password before saving
