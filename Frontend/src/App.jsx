@@ -15,7 +15,7 @@ import NotFound from "./pages/NotFound";
 import Activity from "./pages/Activity";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminColleges from "./pages/admin/Colleges";
-import AdminUsers from "./pages/admin/Users";
+import UserManagementPage from "./pages/admin/Users";
 import AdminReports from "./pages/admin/Reports";
 import AdminLayout from "./components/layouts/AdminLayout";
 import About from "./pages/About";
@@ -39,7 +39,7 @@ const AppContent = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="colleges" element={<AdminColleges />} />
-          <Route path="users" element={<AdminUsers />} />
+          <Route path="users" element={<UserManagementPage />} />
           <Route path="reports" element={<AdminReports />} />
         </Route>
 
