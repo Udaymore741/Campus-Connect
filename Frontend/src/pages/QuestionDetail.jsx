@@ -1,73 +1,113 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import QuestionCard from "../components/QuestionCard";
-import AnswerForm from "../components/AnswerForm";
-import { getQuestionById } from "../data/mockData";
-import { ChevronUp, ChevronDown, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { MessageCircle } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import QuestionCard from "@/components/QuestionCard";
+import AnswerCard from "@/components/AnswerCard";
+import Navbar from "@/components/Navbar";
 
 export default function QuestionDetail() {
   const { id } = useParams();
-  const question = getQuestionById(id || "");
+  const { user } = useAuth();
+  const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
+  const [newAnswer, setNewAnswer] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    fetchQuestionAndAnswers();
+  }, [id]);
 
-  useEffect(() => {
-    if (question) {
-      // Sort answers by upvotes (highest first)
-      const sortedAnswers = [...question.answers].sort(
-        (a, b) => b.upvotes - a.upvotes
-      );
-      setAnswers(sortedAnswers);
+  const fetchQuestionAndAnswers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch question details
+      const questionResponse = await axios.get(`http://localhost:8080/api/questions/${id}`, {
+        withCredentials: true
+      });
+      setQuestion(questionResponse.data);
+
+      // Fetch answers
+      const answersResponse = await axios.get(`http://localhost:8080/api/answers/question/${id}`, {
+        withCredentials: true
+      });
+      setAnswers(answersResponse.data);
+    } catch (error) {
+      console.error('Error fetching question details:', error);
+      setError(error.response?.data?.message || 'Failed to load question details');
+      toast.error('Failed to load question details. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  }, [question]);
-
-  const formatDate = (date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
   };
 
-  // Handle upvoting an answer
-  const handleUpvoteAnswer = (answerId, action) => {
-    setAnswers(
-      answers.map((answer) => {
-        if (answer.id === answerId) {
-          return {
-            ...answer,
-            upvotes:
-              action === 'upvote' ? answer.upvotes + 1 : Math.max(0, answer.upvotes - 1),
-          };
-        }
-        return answer;
-      })
-    );
+  const handleSubmitAnswer = async (e) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast.error("Please log in to post an answer");
+      return;
+    }
+    
+    if (!newAnswer.trim()) {
+      toast.error("Please enter your answer");
+      return;
+    }
+    
+    setSubmitting(true);
+    
+    try {
+      const response = await axios.post('http://localhost:8080/api/answers', {
+        content: newAnswer,
+        questionId: id
+      }, {
+        withCredentials: true
+      });
+
+      setAnswers(prev => [response.data, ...prev]);
+      setNewAnswer("");
+      toast.success("Answer posted successfully!");
+    } catch (error) {
+      console.error('Error posting answer:', error);
+      toast.error(error.response?.data?.message || 'Failed to post answer');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (!question) {
+  if (loading) {
     return (
       <div className="min-h-screen">
         <Navbar />
         <main className="pt-24 pb-16 px-4 md:px-6">
-          <div className="container max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl font-bold mb-4">Question Not Found</h1>
-            <p className="text-muted-foreground mb-6">
-              The question you're looking for doesn't exist or has been removed.
-            </p>
-            <a
-              href="/questions"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-10 px-6"
+          <div className="container max-w-7xl mx-auto flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !question) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16 px-4 md:px-6">
+          <div className="container max-w-7xl mx-auto text-center">
+            <p className="text-red-500 mb-4">{error || 'Question not found'}</p>
+            <button
+              onClick={fetchQuestionAndAnswers}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Browse Questions
-            </a>
+              Retry
+            </button>
           </div>
         </main>
       </div>
@@ -79,82 +119,71 @@ export default function QuestionDetail() {
       <Navbar />
       
       <main className="pt-24 pb-16 px-4 md:px-6">
-        <div className="container max-w-4xl mx-auto">
+        <div className="container max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-8">
           {/* Question */}
           <QuestionCard question={question} isDetailed />
           
-          {/* Answers Section */}
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
+              {/* Answer Form */}
+              {user ? (
+                <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                Answers ({answers.length})
+                    Your Answer
               </h2>
+                  
+                  <form onSubmit={handleSubmitAnswer}>
+                    <textarea
+                      value={newAnswer}
+                      onChange={(e) => setNewAnswer(e.target.value)}
+                      placeholder="Write your answer here..."
+                      rows={4}
+                      className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y mb-4"
+                    />
+                    
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting ? "Posting..." : "Post Answer"}
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <div className="bg-card rounded-xl shadow-sm p-6 border border-border text-center">
+                  <p className="text-muted-foreground">Please log in to post an answer</p>
             </div>
+              )}
             
-            {/* Answer List */}
-            {answers.length > 0 ? (
+              {/* Answers List */}
               <div className="space-y-6">
+                <h2 className="text-xl font-semibold">
+                  {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
+                </h2>
+                
                 {answers.map((answer) => (
-                  <div key={answer.id} className="bg-card rounded-xl p-5 border border-border animate-fade-in">
-                    <div className="flex gap-4">
-                      {/* Voting */}
-                      <div className="flex flex-col items-center">
-                        <button
-                          onClick={() => handleUpvoteAnswer(answer.id, 'upvote')}
-                          className="p-1 text-muted-foreground hover:text-primary transition-colors"
-                          aria-label="Upvote"
-                        >
-                          <ChevronUp className="h-6 w-6" />
-                        </button>
-                        <span className="text-sm font-medium py-1">{answer.upvotes}</span>
-                        <button
-                          onClick={() => handleUpvoteAnswer(answer.id, 'downvote')}
-                          className="p-1 text-muted-foreground hover:text-primary transition-colors"
-                          aria-label="Downvote"
-                        >
-                          <ChevronDown className="h-6 w-6" />
-                        </button>
-                      </div>
-                      
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="text-foreground/90">{answer.content}</div>
-                        
-                        {/* Author and Date */}
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={answer.author.avatar}
-                              alt={answer.author.name}
-                              className="h-8 w-8 rounded-full object-cover"
-                            />
-                            <div>
-                              <a href={`/profile/${answer.author.id}`} className="text-sm font-medium hover:text-primary transition-colors">
-                                {answer.author.name}
-                              </a>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(answer.createdAt)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <AnswerCard 
+                    key={answer._id} 
+                    answer={answer}
+                    isQuestionAuthor={question.author._id === user?.id}
+                    onAnswerUpdated={fetchQuestionAndAnswers}
+                  />
                 ))}
+                
+                {answers.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    No answers yet. Be the first to answer!
+                  </p>
+                )}
               </div>
-            ) : (
-              <div className="text-center py-8 bg-muted/30 rounded-xl">
-                <p className="text-muted-foreground">
-                  No answers yet. Be the first to answer this question!
-                </p>
               </div>
-            )}
-            
-            {/* Answer Form */}
-            <div className="mt-8">
-              <AnswerForm questionId={question.id} />
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              {/* You can add related questions or other sidebar content here */}
             </div>
           </div>
         </div>
