@@ -8,12 +8,16 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+const http = require('http');
+const socketService = require('./services/socketService');
 
 const User = require('./models/User');
 const auth = require('./middleware/auth');
 const upload = require('./middleware/upload');
 const collegeRoutes = require('./routes/collegeRoutes');
 const enrollmentRoutes = require('./routes/enrollment');
+const questionRoutes = require('./routes/questions');
+const answerRoutes = require('./routes/answers');
 
 const app = express();
 
@@ -48,6 +52,10 @@ app.use('/api/colleges', collegeRoutes);
 
 // Use enrollment routes
 app.use('/api/enrollment', enrollmentRoutes);
+
+// Use question and answer routes
+app.use('/api/questions', questionRoutes);
+app.use('/api/answers', answerRoutes);
 
 // Create admin user if it doesn't exist
 const createAdminUser = async () => {
@@ -377,7 +385,13 @@ app.get('/api/users', auth, async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+socketService.initializeSocket(server);
+
+// Update the server listen call
+server.listen(process.env.PORT || 8080, () => {
+  console.log(`Server is running on port ${process.env.PORT || 8080}`);
 });
