@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Users, MessageSquare, School, Check } from "lucide-react";
+import { Users, MessageSquare, School, CheckCircle2, UserPlus, ArrowRight } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function CollegesList() {
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -16,7 +18,9 @@ export default function CollegesList() {
 
   const fetchColleges = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/colleges");
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get("http://localhost:8080/api/colleges", { headers });
       setColleges(response.data);
     } catch (error) {
       toast.error("Failed to fetch colleges");
@@ -25,20 +29,55 @@ export default function CollegesList() {
     }
   };
 
-  const handleJoin = (collegeId, event) => {
+  const handleJoinToggle = async (collegeId, event) => {
     event.preventDefault(); // Prevent navigation
-    setColleges(prevColleges =>
-      prevColleges.map(college =>
-        college._id === collegeId
-          ? { ...college, isJoined: !college.isJoined }
-          : college
-      )
-    );
+    if (!isAuthenticated) {
+      toast.error("Please login to join a college");
+      return;
+    }
+
+    try {
+      const college = colleges.find(c => c._id === collegeId);
+      const endpoint = college.isEnrolled ? 'unjoin' : 'join';
+      const token = localStorage.getItem('token');
+
+      await axios.post(
+        `http://localhost:8080/api/colleges/${collegeId}/${endpoint}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      // Update local state
+      setColleges(prevColleges =>
+        prevColleges.map(college =>
+          college._id === collegeId
+            ? { ...college, isEnrolled: !college.isEnrolled }
+            : college
+        )
+      );
+
+      // Show success toast with appropriate message
+      if (!college.isEnrolled) {
+        toast.success("Successfully joined the college!", {
+          description: "You are now a member of this college community.",
+          duration: 3000,
+        });
+      } else {
+        toast.success("Successfully unjoined the college", {
+          description: "You have left this college community.",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update enrollment status");
+    }
   };
 
   const handleCardClick = (college, event) => {
     // Only navigate if the click wasn't on the join button
-    if (!event.defaultPrevented && college.isJoined) {
+    if (!event.defaultPrevented) {
       navigate(`/college/${college._id}`);
     }
   };
@@ -61,12 +100,7 @@ export default function CollegesList() {
           {colleges.map((college) => (
             <div
               key={college._id}
-              onClick={(e) => handleCardClick(college, e)}
-              className={`bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 ${
-                college.isJoined 
-                  ? "hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 cursor-pointer" 
-                  : ""
-              }`}
+              className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -76,53 +110,64 @@ export default function CollegesList() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{(college.members || 0).toLocaleString()}</span>
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>{(college.members || 0).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Members</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">Members</p>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{(college.questionsCount || 0).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Questions</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>{(college.activeUsers || 0).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Active Users</p>
+                    </div>
                   </div>
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
-                      <MessageSquare className="h-4 w-4" />
-                      <span>{(college.questionsCount || 0).toLocaleString()}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Questions</p>
+
+                  <div className="flex gap-2">
+                    {isAuthenticated && (
+                      <button
+                        onClick={(e) => handleJoinToggle(college._id, e)}
+                        className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                          college.isEnrolled
+                            ? "bg-green-500 text-white hover:bg-green-600"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-1 font-semibold">
+                          {college.isEnrolled ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span>Already Joined</span>
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="h-4 w-4" />
+                              <span>Join</span>
+                            </>
+                          )}
+                        </div>
+                      </button>
+                    )}
+                    <Link
+                      to={`/college/${college._id}`}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span>View Details</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </div>
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{(college.activeUsers || 0).toLocaleString()}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Active Users</p>
-                  </div>
-                  <button
-                    onClick={(e) => handleJoin(college._id, e)}
-                    className={`rounded-lg p-3 transition-colors ${
-                      college.isJoined
-                        ? "bg-primary/10 hover:bg-primary/20"
-                        : "bg-primary hover:bg-primary/90"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-1 font-semibold">
-                      {college.isJoined ? (
-                        <>
-                          <Check className="h-4 w-4 text-primary" />
-                          <span className="text-primary">Joined</span>
-                        </>
-                      ) : (
-                        <>
-                          <School className="h-4 w-4 text-primary-foreground" />
-                          <span className="text-primary-foreground">Join</span>
-                        </>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {college.isJoined ? "Click to view" : "Click to join"}
-                    </p>
-                  </button>
                 </div>
               </div>
             </div>
