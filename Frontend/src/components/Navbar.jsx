@@ -71,8 +71,8 @@ export default function Navbar() {
         <div className="hidden md:flex items-center space-x-6">
           {user ? (
             <>
-              <Link to="/my-hubs" className="text-foreground/80 hover:text-primary transition-colors">
-                My Hubs
+              <Link to="/my-hub" className="text-foreground/80 hover:text-primary transition-colors">
+                My Hub
               </Link>
               <Link to="/colleges" className="text-foreground/80 hover:text-primary transition-colors">
                 Colleges
@@ -235,11 +235,11 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  to="/my-hubs"
+                  to="/my-hub"
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-2 text-lg hover:text-primary transition-colors"
                 >
-                  My Hubs
+                  My Hub
                 </Link>
                 <Link
                   to="/colleges"
