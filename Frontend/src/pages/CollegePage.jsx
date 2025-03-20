@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { categories } from "../data/mockData";
 import axios from "axios";
-import PropTypes from "prop-types";
 import { School, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -277,30 +276,3 @@ export default function CollegePage() {
     </div>
   );
 }
-
-const collegeShape = PropTypes.shape({
-  _id: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  description: PropTypes.string.isRequired,
-  image: PropTypes.string.isRequired,
-  location: PropTypes.string,
-  established: PropTypes.string,
-  courses: PropTypes.arrayOf(PropTypes.string),
-  facilities: PropTypes.arrayOf(PropTypes.string),
-  achievements: PropTypes.string,
-  contactInfo: PropTypes.string,
-  questionsCount: PropTypes.number,
-  rank: PropTypes.number
-});
-
-CollegePage.propTypes = {
-  id: PropTypes.string,
-  navigate: PropTypes.func.isRequired,
-  setActiveSection: PropTypes.func.isRequired,
-  setCollege: PropTypes.func.isRequired,
-  setLoading: PropTypes.func.isRequired,
-  setError: PropTypes.func.isRequired,
-  college: collegeShape,
-  loading: PropTypes.bool.isRequired,
-  error: PropTypes.string
-};
