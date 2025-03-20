@@ -1,17 +1,41 @@
 const express = require('express');
 const router = express.Router();
 const College = require('../models/College');
+const User = require('../models/User');
 const adminAuth = require('../middleware/adminAuth');
+const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const jwt = require('jsonwebtoken');
 
-// Get all colleges (public route)
+// Get all colleges (public route with optional auth)
 router.get('/', async (req, res) => {
   try {
     const colleges = await College.find().sort({ createdAt: -1 });
-    res.json(colleges.map(college => ({
+    
+    // Get user's enrollments if user is logged in
+    let userEnrollments = [];
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        if (user) {
+          userEnrollments = user.enrolledColleges || [];
+        }
+      } catch (err) {
+        // Token verification failed, continue without enrollment data
+        console.log('Token verification failed:', err.message);
+      }
+    }
+
+    // Map colleges and add enrollment status
+    const collegesWithStatus = colleges.map(college => ({
       ...college.toObject(),
-      image: college.image ? `http://localhost:8080${college.image}` : ''
-    })));
+      image: college.image ? `http://localhost:8080${college.image}` : '',
+      isEnrolled: userEnrollments.includes(college._id.toString())
+    }));
+
+    res.json(collegesWithStatus);
   } catch (error) {
     console.error('Error fetching colleges:', error);
     res.status(500).json({ message: 'Error fetching colleges' });
@@ -155,6 +179,80 @@ router.delete('/:id', adminAuth, async (req, res) => {
   } catch (error) {
     console.error('Error deleting college:', error);
     res.status(500).json({ message: 'Error deleting college' });
+  }
+});
+
+// Join college (authenticated users only)
+router.post('/:id/join', auth, async (req, res) => {
+  try {
+    const college = await College.findById(req.params.id);
+    if (!college) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if user is already enrolled
+    const isEnrolled = user.enrolledColleges.some(
+      enrollment => enrollment.college.toString() === college._id.toString()
+    );
+
+    if (isEnrolled) {
+      return res.status(400).json({ message: 'Already enrolled in this college' });
+    }
+
+    // Add college to user's enrollments
+    user.enrolledColleges.push({
+      college: college._id,
+      enrolledAt: new Date()
+    });
+
+    await user.save();
+
+    // Increment college members count
+    college.members = (college.members || 0) + 1;
+    await college.save();
+
+    res.json({ message: 'Successfully joined college' });
+  } catch (error) {
+    console.error('Error joining college:', error);
+    res.status(500).json({ message: 'Error joining college' });
+  }
+});
+
+// Unjoin college (authenticated users only)
+router.post('/:id/unjoin', auth, async (req, res) => {
+  try {
+    const college = await College.findById(req.params.id);
+    if (!college) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Remove college from user's enrollments
+    user.enrolledColleges = user.enrolledColleges.filter(
+      enrollment => enrollment.college.toString() !== college._id.toString()
+    );
+
+    await user.save();
+
+    // Decrement college members count
+    if (college.members > 0) {
+      college.members -= 1;
+      await college.save();
+    }
+
+    res.json({ message: 'Successfully unjoined college' });
+  } catch (error) {
+    console.error('Error unjoining college:', error);
+    res.status(500).json({ message: 'Error unjoining college' });
   }
 });
 
