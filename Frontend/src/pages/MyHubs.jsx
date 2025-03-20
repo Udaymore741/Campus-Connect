@@ -4,7 +4,7 @@ import { Users, MessageSquare, School } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
-export default function MyHubs() {
+export default function MyHub() {
   const [enrolledColleges, setEnrolledColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
