@@ -2,36 +2,43 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ThumbsUp, MessageCircle, Heart, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import axios from "axios";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function QuestionCard({ question, isDetailed = false }) {
-  const [upvotes, setUpvotes] = useState(question.upvotes);
-  const [likes, setLikes] = useState(question.likes);
-  const [hasUpvoted, setHasUpvoted] = useState(false);
-  const [hasLiked, setHasLiked] = useState(false);
+  const { user } = useAuth();
+  const [likes, setLikes] = useState(question.likes || []);
+  const [isLiking, setIsLiking] = useState(false);
+  const hasLiked = user && likes.includes(user.id);
 
-  const handleUpvote = (e) => {
+  const handleLike = async (e) => {
     e.preventDefault();
-    if (hasUpvoted) {
-      setUpvotes(upvotes - 1);
-      setHasUpvoted(false);
-    } else {
-      setUpvotes(upvotes + 1);
-      setHasUpvoted(true);
+    if (!user) {
+      toast.error("Please log in to like questions");
+      return;
+    }
+
+    if (isLiking) return;
+
+    try {
+      setIsLiking(true);
+      const response = await axios.post(
+        `http://localhost:8080/api/questions/${question._id}/like`,
+        {},
+        { withCredentials: true }
+      );
+      setLikes(response.data.likes);
+    } catch (error) {
+      console.error('Error liking question:', error);
+      toast.error(error.response?.data?.message || 'Failed to update like');
+    } finally {
+      setIsLiking(false);
     }
   };
 
-  const handleLike = (e) => {
-    e.preventDefault();
-    if (hasLiked) {
-      setLikes(likes - 1);
-      setHasLiked(false);
-    } else {
-      setLikes(likes + 1);
-      setHasLiked(true);
-    }
-  };
-
-  const formatDate = (date) => {
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
@@ -43,18 +50,30 @@ export default function QuestionCard({ question, isDetailed = false }) {
     <>
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <Link to={`/profile/${question.author.id}`} className="shrink-0">
-          <img 
-            src={question.author.avatar}
-            alt={question.author.name}
-            className="h-10 w-10 rounded-full object-cover"
-          />
+        <Link to={`/profile/${question.author._id}`} className="shrink-0">
+          {question.author.profilePicture ? (
+            <img 
+              src={question.author.profilePicture}
+              alt={question.author.name}
+              className="h-10 w-10 rounded-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(question.author.name)}&background=random`;
+              }}
+            />
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-lg font-medium text-primary">
+                {question.author.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
         </Link>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-col space-y-1.5">
-            <Link to={`/question/${question.id}`}>
+            <Link to={`/question/${question._id}`}>
               <h3 className={cn(
                 "font-semibold leading-tight text-foreground hover:text-primary transition-colors line-clamp-2",
                 isDetailed ? "text-2xl" : "text-lg"
@@ -63,13 +82,13 @@ export default function QuestionCard({ question, isDetailed = false }) {
               </h3>
             </Link>
             <div className="flex items-center text-xs text-muted-foreground">
-              <Link to={`/profile/${question.author.id}`} className="font-medium hover:text-primary transition-colors">
+              <Link to={`/profile/${question.author._id}`} className="font-medium hover:text-primary transition-colors">
                 {question.author.name}
               </Link>
               <span className="mx-1.5">•</span>
-              <Link to={`/category/${question.category.slug}`} className="hover:text-primary transition-colors">
-                {question.category.name}
-              </Link>
+              <span className="hover:text-primary transition-colors">
+                {question.category}
+              </span>
               <span className="mx-1.5">•</span>
               <span>{formatDate(question.createdAt)}</span>
             </div>
@@ -86,36 +105,39 @@ export default function QuestionCard({ question, isDetailed = false }) {
           {/* Actions */}
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <button 
-              onClick={handleUpvote}
+              onClick={handleLike}
+              disabled={isLiking}
               className={cn(
                 "flex items-center gap-1.5 text-xs font-medium transition-colors",
-                hasUpvoted ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                isLiking && "opacity-50 cursor-not-allowed",
+                hasLiked ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <ThumbsUp className="h-4 w-4" />
-              <span>{upvotes}</span>
+              <ThumbsUp className={cn("h-4 w-4", hasLiked && "fill-primary")} />
+              <span>{likes.length}</span>
             </button>
             
             <Link 
-              to={`/question/${question.id}`}
+              to={`/question/${question._id}`}
               className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{question.answers.length} Answers</span>
+              <span>{question.answers?.length || 0} Answers</span>
             </Link>
             
-            <button 
-              onClick={handleLike}
-              className={cn(
-                "flex items-center gap-1.5 text-xs font-medium transition-colors",
-                hasLiked ? "text-accent" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Heart className={cn("h-4 w-4", hasLiked && "fill-accent")} />
-              <span>{likes}</span>
-            </button>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Heart className="h-4 w-4" />
+              <span>{question.views || 0} Views</span>
+            </div>
             
-            <button className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto">
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                navigator.clipboard.writeText(`${window.location.origin}/question/${question._id}`);
+                toast.success('Link copied to clipboard');
+              }}
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto"
+            >
               <Share2 className="h-4 w-4" />
               <span>Share</span>
             </button>
@@ -134,7 +156,7 @@ export default function QuestionCard({ question, isDetailed = false }) {
   }
 
   return (
-    <Link to={`/question/${question.id}`} className="block">
+    <Link to={`/question/${question._id}`} className="block">
       <div className="bg-card rounded-xl shadow-sm p-5 border border-border card-hover animate-fade-in">
         <CardContent />
       </div>
