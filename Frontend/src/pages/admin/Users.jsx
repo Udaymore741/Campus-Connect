@@ -26,13 +26,24 @@ import {
   Building2,
   GraduationCap,
   UserCog,
+  List,
+  Grid,
+  User,
+  Shield,
+  Eye,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserManagement from "@/components/admin/UserManagement";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const UserManagementPage = () => {
+  const [viewMode, setViewMode] = useState("list");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -60,17 +71,60 @@ const UserManagementPage = () => {
     },
   });
 
-  // Filter users based on search query
-  const filteredUsers = users.filter(
-    (user) =>
+  // Filter users based on search query and selected role
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = 
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = selectedRole === "all" || user.role === selectedRole;
+    return matchesSearch && matchesRole;
+  });
 
   const handleUserAction = (userId, action) => {
     if (window.confirm(`Are you sure you want to ${action} this user?`)) {
       userActionMutation.mutate({ userId, action });
     }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  const getRoleBadge = (role) => {
+    const variants = {
+      admin: "bg-red-100 text-red-700",
+      student: "bg-blue-100 text-blue-700",
+      faculty: "bg-green-100 text-green-700",
+      visitor: "bg-yellow-100 text-yellow-700",
+    };
+    return variants[role] || "bg-gray-100 text-gray-700";
+  };
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case "admin":
+        return <Shield className="h-4 w-4" />;
+      case "student":
+        return <GraduationCap className="h-4 w-4" />;
+      case "faculty":
+        return <User className="h-4 w-4" />;
+      case "visitor":
+        return <Eye className="h-4 w-4" />;
+      default:
+        return <User className="h-4 w-4" />;
+    }
+  };
+
+  const getInitials = (name) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
   };
 
   return (
@@ -82,123 +136,158 @@ const UserManagementPage = () => {
             Manage user accounts and permissions.
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === "list" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("list")}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setViewMode("grid")}
+          >
+            <Grid className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="list" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <UsersIcon className="h-4 w-4" />
-            List View
-          </TabsTrigger>
-          <TabsTrigger value="grid" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            Grid View
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Tabs value={selectedRole} onValueChange={setSelectedRole}>
+          <TabsList>
+            <TabsTrigger value="all">All Users</TabsTrigger>
+            <TabsTrigger value="student">Students</TabsTrigger>
+            <TabsTrigger value="faculty">Faculty</TabsTrigger>
+            <TabsTrigger value="visitor">Visitors</TabsTrigger>
+            <TabsTrigger value="admin">Admins</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
-        <TabsContent value="list" className="space-y-4">
-          {/* Search and Filters */}
-          <div className="flex items-center space-x-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
-              />
-            </div>
+      <ScrollArea className="h-[calc(100vh-16rem)]">
+        {viewMode === "list" ? (
+          <div className="space-y-4">
+            {filteredUsers?.map((user) => (
+              <Card key={user._id}>
+                <CardContent className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10">
+                      {user.profilePicture ? (
+                        <img
+                          src={user.profilePicture}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-primary text-sm font-medium">
+                          {getInitials(user.name)}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{user.name}</h3>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Badge className={getRoleBadge(user.role)}>
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          View Details
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleUserAction(user._id, "suspend")}
+                          className="text-red-600"
+                        >
+                          <Ban className="mr-2 h-4 w-4" />
+                          Suspend
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleUserAction(user._id, "activate")}
+                          className="text-green-600"
+                        >
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          Activate
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-
-          {/* Users Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Reports</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      No users found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user._id}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">
-                          {user.role === 'student' && <GraduationCap className="h-3 w-3" />}
-                          {user.role === 'faculty' && <UserCog className="h-3 w-3" />}
-                          {user.role === 'admin' && <Building2 className="h-3 w-3" />}
-                          {user.role}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">
-                          Active
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {user.reportCount > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-                            <AlertTriangle className="h-3 w-3" />
-                            {user.reportCount}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleUserAction(user._id, "suspend")}
-                              className="text-red-600"
-                            >
-                              <Ban className="mr-2 h-4 w-4" />
-                              Suspend
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleUserAction(user._id, "activate")}
-                              className="text-green-600"
-                            >
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              Activate
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredUsers?.map((user) => (
+              <Card key={user._id}>
+                <CardContent className="p-4">
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="h-16 w-16 rounded-full overflow-hidden bg-primary/10">
+                      {user.profilePicture ? (
+                        <img
+                          src={user.profilePicture}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-primary text-lg font-medium">
+                          {getInitials(user.name)}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{user.name}</h3>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                    <Badge className={getRoleBadge(user.role)}>
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full">
+                          View Details
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleUserAction(user._id, "suspend")}
+                          className="text-red-600"
+                        >
+                          <Ban className="mr-2 h-4 w-4" />
+                          Suspend
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleUserAction(user._id, "activate")}
+                          className="text-green-600"
+                        >
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          Activate
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="grid">
-          <UserManagement />
-        </TabsContent>
-      </Tabs>
+        )}
+      </ScrollArea>
     </div>
   );
 };

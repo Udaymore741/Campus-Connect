@@ -26,6 +26,10 @@ export default function Profile() {
         if (data.message) {
           toast.error(data.message);
         } else {
+          // Ensure profile picture URL is properly constructed
+          if (data.profilePicture && !data.profilePicture.startsWith('http')) {
+            data.profilePicture = `http://localhost:8080/uploads/${data.profilePicture}`;
+          }
           setUserData(data);
         }
       })
@@ -55,6 +59,12 @@ export default function Profile() {
     try {
       const result = await updateProfile(formData);
       if (result.success) {
+        // Update local user data with new profile picture URL
+        const updatedUserData = {
+          ...userData,
+          profilePicture: result.profilePicture || userData.profilePicture
+        };
+        setUserData(updatedUserData);
         toast.success("Profile picture updated successfully");
       } else {
         toast.error(result.error);
@@ -119,7 +129,7 @@ export default function Profile() {
               <div className="w-32 h-32 rounded-full overflow-hidden bg-muted">
                 {userData.profilePicture ? (
                   <img
-                    src={`http://localhost:8080${userData.profilePicture}`}
+                    src={userData.profilePicture}
                     alt={userData.name}
                     className="w-full h-full object-cover"
                   />
