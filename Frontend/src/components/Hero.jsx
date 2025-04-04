@@ -1,7 +1,10 @@
 import { ArrowRight, BookOpen, Users, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Hero() {
+  const { user } = useAuth();
+  
   return (
     <div className="relative overflow-hidden pt-[72px] pb-16 md:pt-[80px] md:pb-24">
       {/* Background */}
@@ -35,13 +38,15 @@ export default function Hero() {
             >
               Browse Colleges
             </Link>
-            <Link
-              to="/auth"
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-11 px-8"
-            >
-              Join Now
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+            {!user && (
+              <Link
+                to="/auth"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-11 px-8"
+              >
+                Join Now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            )}
           </div>
         </div>
 
