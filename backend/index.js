@@ -26,8 +26,9 @@ const app = express();
 const uploadsDir = path.join(__dirname, 'uploads');
 const profilesDir = path.join(uploadsDir, 'profiles');
 const collegesDir = path.join(uploadsDir, 'colleges');
+const verificationDir = path.join(uploadsDir, 'verification');
 
-[uploadsDir, profilesDir, collegesDir].forEach(dir => {
+[uploadsDir, profilesDir, collegesDir, verificationDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -135,9 +136,12 @@ process.on('unhandledRejection', (err) => {
 });
 
 // Auth Routes
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', upload.fields([
+  { name: 'studentIdCard', maxCount: 1 },
+  { name: 'facultyIdCard', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const { email, password, name, role, department, currentYear, passoutYear, position, grade } = req.body;
+    const { email, password, name, role, department, degree, year, passoutYear, position, grade, linkedinProfile, aictcNumber } = req.body;
     
     // Validate required fields
     if (!email || !password || !name || !role) {
@@ -153,17 +157,19 @@ app.post('/api/register', async (req, res) => {
     }
 
     // Validate role-specific fields
-    if (role === 'student' && (!department || !currentYear || !passoutYear)) {
-      return res.status(400).json({ 
-        message: 'Missing required student fields',
-        required: ['department', 'currentYear', 'passoutYear']
-      });
+    if (role === 'student') {
+      if (!department || !degree || !year || !passoutYear || !linkedinProfile || !req.files?.studentIdCard) {
+        return res.status(400).json({ 
+          message: 'Missing required student fields',
+          required: ['department', 'degree', 'year', 'passoutYear', 'linkedinProfile', 'studentIdCard']
+        });
+      }
     }
 
-    if (role === 'faculty' && !position) {
+    if (role === 'faculty' && (!position || !aictcNumber || !req.files?.facultyIdCard)) {
       return res.status(400).json({ 
-        message: 'Missing required faculty field',
-        required: ['position']
+        message: 'Missing required faculty fields',
+        required: ['position', 'aictcNumber', 'facultyIdCard']
       });
     }
 
@@ -187,45 +193,46 @@ app.post('/api/register', async (req, res) => {
       role,
       ...(role === 'student' && { 
         department, 
-        currentYear: parseInt(currentYear), 
-        passoutYear: parseInt(passoutYear)
+        degree,
+        year: parseInt(year), 
+        passoutYear: parseInt(passoutYear),
+        linkedinProfile,
+        studentIdCard: req.files.studentIdCard[0].path
       }),
-      ...(role === 'faculty' && { position }),
+      ...(role === 'faculty' && { 
+        position,
+        aictcNumber,
+        facultyIdCard: req.files.facultyIdCard[0].path
+      }),
       ...(role === 'visitor' && { grade })
     };
 
     const user = new User(userData);
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.cookie('token', token, { 
-      httpOnly: true, 
-      maxAge: 24 * 60 * 60 * 1000,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
-    });
-    
-    res.status(201).json({ 
-      message: 'User registered successfully',
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      success: true,
+      token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture
+        role: user.role
       }
     });
   } catch (error) {
     console.error('Registration error:', error);
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: Object.values(error.errors).map(err => err.message)
-      });
-    }
     res.status(500).json({ 
-      message: 'Error registering user',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      success: false,
+      message: 'Error during registration',
+      error: error.message 
     });
   }
 });
