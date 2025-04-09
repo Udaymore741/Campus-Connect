@@ -35,7 +35,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: function() { return this.role === 'student'; }
   },
-  currentYear: {
+  degree: {
+    type: String,
+    required: function() { return this.role === 'student'; }
+  },
+  year: {
     type: Number,
     required: function() { return this.role === 'student'; }
   },
@@ -43,7 +47,23 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: function() { return this.role === 'student'; }
   },
+  linkedinProfile: {
+    type: String,
+    required: function() { return this.role === 'student'; }
+  },
+  studentIdCard: {
+    type: String,
+    required: function() { return this.role === 'student'; }
+  },
   position: {
+    type: String,
+    required: function() { return this.role === 'faculty'; }
+  },
+  aictcNumber: {
+    type: String,
+    required: function() { return this.role === 'faculty'; }
+  },
+  facultyIdCard: {
     type: String,
     required: function() { return this.role === 'faculty'; }
   },
