@@ -140,6 +140,12 @@ export default function Auth() {
       let result;
       if (mode === "login") {
         result = await login(email, password);
+        if (result.success) {
+          // Don't navigate here, let the AuthContext handle the navigation
+          toast.success("Logged in successfully!");
+        } else {
+          toast.error(result.error);
+        }
       } else {
         const formData = new FormData();
         formData.append('email', email);
@@ -167,13 +173,12 @@ export default function Auth() {
         }
 
         result = await register(formData);
-      }
-
-      if (result.success) {
-        toast.success(mode === "login" ? "Logged in successfully!" : "Account created successfully!");
-        navigate("/profile");
-      } else {
-        toast.error(result.error);
+        if (result.success) {
+          toast.success("Account created successfully!");
+          navigate("/auth?mode=login");
+        } else {
+          toast.error(result.error);
+        }
       }
     } catch (error) {
       console.error('Registration error:', error);
