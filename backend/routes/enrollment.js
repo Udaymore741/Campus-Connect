@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
-const College = require('../models/College');
-const Enrollment = require('../models/Enrollment');
-const auth = require('../middleware/auth');
+import express from 'express';
+import { Router } from 'express';
+import User from '../models/User.js';
+import College from '../models/College.js';
+import Enrollment from '../models/Enrollment.js';
+import auth from '../middleware/auth.js';
+
+const router = Router();
 
 // Enroll in a college
 router.post('/enroll/:collegeId', auth, async (req, res) => {
@@ -111,4 +113,4 @@ router.get('/check/:collegeId', auth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 
