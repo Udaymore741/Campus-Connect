@@ -20,68 +20,126 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    required: true,
-    enum: ['student', 'faculty', 'visitor', 'admin']
-  },
-  isAdmin: {
-    type: Boolean,
-    default: false
+    enum: ['admin', 'student', 'faculty', 'visitor'],
+    required: true
   },
   profilePicture: {
     type: String,
     default: ''
   },
+  // Common fields for all roles
+  dateOfBirth: {
+    type: Date
+  },
+  bloodGroup: {
+    type: String,
+    trim: true
+  },
+  socialLinks: {
+    github: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    linkedin: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    twitter: {
+      type: String,
+      trim: true,
+      default: ''
+    }
+  },
+  // Student specific fields
   department: {
     type: String,
-    required: function() { return this.role === 'student'; }
+    trim: true
   },
   degree: {
     type: String,
-    required: function() { return this.role === 'student'; }
+    trim: true
   },
   year: {
-    type: Number,
-    required: function() { return this.role === 'student'; }
+    type: String,
+    trim: true
   },
   passoutYear: {
-    type: Number,
-    required: function() { return this.role === 'student'; }
-  },
-  linkedinProfile: {
     type: String,
-    required: function() { return this.role === 'student'; }
+    trim: true
   },
-  studentIdCard: {
+  rollNumber: {
     type: String,
-    required: function() { return this.role === 'student'; }
+    trim: true
   },
+  cgpa: {
+    type: Number
+  },
+  // Faculty specific fields
   position: {
     type: String,
-    required: function() { return this.role === 'faculty'; }
+    trim: true
   },
-  aictcNumber: {
+  qualification: {
     type: String,
-    required: function() { return this.role === 'faculty'; }
+    trim: true
   },
-  facultyIdCard: {
+  specialization: {
     type: String,
-    required: function() { return this.role === 'faculty'; }
+    trim: true
   },
+  experience: {
+    type: Number
+  },
+  // Visitor specific fields
   grade: {
     type: String,
-    required: function() { return this.role === 'visitor'; }
+    trim: true
   },
-  enrolledColleges: [{
-    college: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'College'
+  // Admin specific fields
+  adminRole: {
+    type: String,
+    trim: true
+  },
+  permissions: [{
+    type: String,
+    trim: true
+  }],
+  skills: {
+    type: [String],
+    default: []
+  },
+  achievements: [{
+    title: {
+      type: String,
+      required: true
     },
-    enrolledAt: {
-      type: Date,
-      default: Date.now
+    description: {
+      type: String,
+      required: true
     }
-  }]
-}, { timestamps: true });
+  }],
+  // Common fields for all roles
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  }
+}, {
+  timestamps: true
+});
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
