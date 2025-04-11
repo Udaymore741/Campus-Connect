@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ThumbsUp, MessageCircle, Heart, Share2, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
@@ -8,12 +8,14 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function QuestionCard({ question, isDetailed = false }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [likes, setLikes] = useState(question.likes || []);
   const [isLiking, setIsLiking] = useState(false);
   const hasLiked = user && likes.includes(user.id);
 
   const handleLike = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!user) {
       toast.error("Please log in to like questions");
       return;
@@ -46,11 +48,16 @@ export default function QuestionCard({ question, isDetailed = false }) {
     }).format(date);
   };
 
+  const handleCardClick = (e) => {
+    if (e.target.closest('button')) return;
+    navigate(`/question/${question._id}`);
+  };
+
   const CardContent = () => (
-    <>
-      <div className="flex items-start gap-4">
-        {/* Avatar */}
-        <Link to={`/profile/${question.author._id}`} className="shrink-0">
+    <div className="flex items-start gap-4">
+      {/* Avatar */}
+      <div className="shrink-0">
+        <Link to={`/profile/${question.author._id}`} className="block">
           {question.author.profilePicture ? (
             <img 
               src={question.author.profilePicture}
@@ -69,82 +76,78 @@ export default function QuestionCard({ question, isDetailed = false }) {
             </div>
           )}
         </Link>
+      </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col space-y-1.5">
-            <Link to={`/question/${question._id}`}>
-              <h3 className={cn(
-                "font-semibold leading-tight text-foreground hover:text-primary transition-colors line-clamp-2",
-                isDetailed ? "text-2xl" : "text-lg"
-              )}>
-                {question.title}
-              </h3>
-            </Link>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <Link to={`/profile/${question.author._id}`} className="font-medium hover:text-primary transition-colors">
-                {question.author.name}
-              </Link>
-              <span className="mx-1.5">•</span>
-              <span className="hover:text-primary transition-colors">
-                {question.category}
-              </span>
-              <span className="mx-1.5">•</span>
-              <span>{formatDate(question.createdAt)}</span>
-            </div>
-          </div>
-
-          {/* Question content */}
-          <div className={cn(
-            "mt-2 text-sm text-foreground/90",
-            isDetailed ? "" : "line-clamp-3"
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-col space-y-1.5">
+          <h3 className={cn(
+            "font-semibold leading-tight text-foreground hover:text-primary transition-colors line-clamp-2",
+            isDetailed ? "text-2xl" : "text-lg"
           )}>
-            <p>{question.content}</p>
-          </div>
-
-          {/* Actions */}
-          <div className="mt-4 flex flex-wrap items-center gap-4">
-            <button 
-              onClick={handleLike}
-              disabled={isLiking}
-              className={cn(
-                "flex items-center gap-1.5 text-xs font-medium transition-colors",
-                isLiking && "opacity-50 cursor-not-allowed",
-                hasLiked ? "text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <ThumbsUp className={cn("h-4 w-4", hasLiked && "fill-primary")} />
-              <span>{likes.length}</span>
-            </button>
-            
-            <Link 
-              to={`/question/${question._id}`}
-              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span>{question.answers?.length || 0} Answers</span>
+            {question.title}
+          </h3>
+          <div className="flex items-center text-xs text-muted-foreground">
+            <Link to={`/profile/${question.author._id}`} className="font-medium hover:text-primary transition-colors">
+              {question.author.name}
             </Link>
-            
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Eye className="w-4 h-4" />
-              <span>{question.views || 0} views</span>
-            </div>
-            
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                navigator.clipboard.writeText(`${window.location.origin}/question/${question._id}`);
-                toast.success('Link copied to clipboard');
-              }}
-              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto"
-            >
-              <Share2 className="h-4 w-4" />
-              <span>Share</span>
-            </button>
+            <span className="mx-1.5">•</span>
+            <span className="hover:text-primary transition-colors">
+              {question.category}
+            </span>
+            <span className="mx-1.5">•</span>
+            <span>{formatDate(question.createdAt)}</span>
           </div>
         </div>
+
+        {/* Question content */}
+        <div className={cn(
+          "mt-2 text-sm text-foreground/90",
+          isDetailed ? "" : "line-clamp-3"
+        )}>
+          <p>{question.content}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <button 
+            onClick={handleLike}
+            disabled={isLiking}
+            className={cn(
+              "flex items-center gap-1.5 text-xs font-medium transition-colors",
+              isLiking && "opacity-50 cursor-not-allowed",
+              hasLiked ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ThumbsUp className={cn("h-4 w-4", hasLiked && "fill-primary")} />
+            <span>{likes.length}</span>
+          </button>
+          
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <MessageCircle className="h-4 w-4" />
+            <span>{question.answers?.length || 0} Answers</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Eye className="w-4 h-4" />
+            <span>{question.views || 0} views</span>
+          </div>
+          
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigator.clipboard.writeText(`${window.location.origin}/question/${question._id}`);
+              toast.success('Link copied to clipboard');
+            }}
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto"
+          >
+            <Share2 className="h-4 w-4" />
+            <span>Share</span>
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 
   if (isDetailed) {
@@ -156,10 +159,11 @@ export default function QuestionCard({ question, isDetailed = false }) {
   }
 
   return (
-    <Link to={`/question/${question._id}`} className="block">
-      <div className="bg-card rounded-xl shadow-sm p-5 border border-border card-hover animate-fade-in">
-        <CardContent />
-      </div>
-    </Link>
+    <div 
+      onClick={handleCardClick}
+      className="bg-card rounded-xl shadow-sm p-5 border border-border card-hover animate-fade-in cursor-pointer"
+    >
+      <CardContent />
+    </div>
   );
 } 
