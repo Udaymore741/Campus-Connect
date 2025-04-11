@@ -1,14 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const Question = require('../models/Question');
-const Answer = require('../models/Answer');
-const auth = require('../middleware/auth');
-const { 
+import express from 'express';
+import { Router } from 'express';
+import Question from '../models/Question.js';
+import Answer from '../models/Answer.js';
+import auth from '../middleware/auth.js';
+import { 
   emitNewQuestion, 
   emitQuestionUpdate, 
   emitQuestionDelete,
   emitLikeUpdate 
-} = require('../services/socketService');
+} from '../services/socketService.js';
+
+const router = Router();
 
 // Get all questions for a college
 router.get('/college/:collegeId', async (req, res) => {
@@ -205,4 +207,4 @@ router.post('/:id/like', auth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 
