@@ -1,9 +1,9 @@
-const socketIO = require('socket.io');
+import { Server } from 'socket.io';
 
 let io;
 
 const initializeSocket = (server) => {
-  io = socketIO(server, {
+  io = new Server(server, {
     cors: {
       origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
       methods: ['GET', 'POST'],
@@ -100,7 +100,7 @@ const emitNewComment = (questionId, answerId, comment) => {
   }
 };
 
-module.exports = {
+export {
   initializeSocket,
   emitNewQuestion,
   emitNewAnswer,
