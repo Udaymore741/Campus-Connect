@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
-const College = require('../models/College');
-const Question = require('../models/Question');
-const adminAuth = require('../middleware/adminAuth');
+import express from 'express';
+import { Router } from 'express';
+import User from '../models/User.js';
+import College from '../models/College.js';
+import Question from '../models/Question.js';
+import adminAuth from '../middleware/adminAuth.js';
+
+const router = Router();
 
 // Get dashboard statistics
 router.get('/dashboard', adminAuth, async (req, res) => {
@@ -52,4 +54,4 @@ router.get('/dashboard', adminAuth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 
