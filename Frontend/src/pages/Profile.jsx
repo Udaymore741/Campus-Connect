@@ -200,18 +200,38 @@ export default function Profile() {
     const requiredFields = {
       name: userData.name,
       email: userData.email,
-      department: userData.department,
-      year: userData.year,
+      profilePicture: userData.profilePicture,
+      bio: userData.bio,
       rollNumber: userData.rollNumber,
       cgpa: userData.cgpa,
       dateOfBirth: userData.dateOfBirth,
-      bloodGroup: userData.bloodGroup
+      bloodGroup: userData.bloodGroup,
+      github: userData.socialLinks?.github,
+      linkedin: userData.socialLinks?.linkedin,
+      skills: userData.skills?.length > 0,
+      achievements: userData.achievements?.length > 0
     };
 
-    const filledFields = Object.values(requiredFields).filter(value => value).length;
+    const filledFields = Object.values(requiredFields).filter(value => {
+      if (typeof value === 'boolean') return value;
+      return value && value.toString().trim() !== '';
+    }).length;
+
     const totalFields = Object.keys(requiredFields).length;
     
     return Math.round((filledFields / totalFields) * 100);
+  };
+
+  const getCompletionColor = (percentage) => {
+    if (percentage < 30) return 'bg-red-500';
+    if (percentage < 70) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const getCompletionText = (percentage) => {
+    if (percentage < 30) return 'Profile Incomplete';
+    if (percentage < 70) return 'Profile Partially Complete';
+    return 'Profile Complete';
   };
 
   useEffect(() => {
@@ -384,6 +404,10 @@ export default function Profile() {
     setShowEditProfileModal(true);
   };
 
+  const handleEditProfile = () => {
+    setShowEditProfileModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
@@ -437,7 +461,7 @@ export default function Profile() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsEditModalOpen(true)}
+                onClick={handleEditProfile}
                 className="px-4 py-2 bg-primary dark:bg-primary-light text-white dark:text-gray-900 rounded-lg font-medium shadow-lg hover:bg-primary/90 dark:hover:bg-primary-light/90 transition-colors duration-300 flex items-center gap-2"
                 disabled={isLoading.userData}
               >
@@ -474,7 +498,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Profile Completion */}
+            {/* Profile Completion Indicator */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -482,15 +506,19 @@ export default function Profile() {
               className="mt-8"
             >
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Completion</h3>
-                <span className="text-sm font-medium text-primary dark:text-primary-light">{profileCompletion}%</span>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {getCompletionText(profileCompletion)}
+                </h3>
+                <span className="text-sm font-medium text-primary dark:text-primary-light">
+                  {profileCompletion}%
+                </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${profileCompletion}%` }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="bg-primary dark:bg-primary-light h-2.5 rounded-full"
+                  className={`${getCompletionColor(profileCompletion)} h-2.5 rounded-full`}
                 />
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
