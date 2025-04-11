@@ -1,11 +1,13 @@
-const express = require('express');
-const router = express.Router();
-const College = require('../models/College');
-const User = require('../models/User');
-const adminAuth = require('../middleware/adminAuth');
-const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import { Router } from 'express';
+import College from '../models/College.js';
+import User from '../models/User.js';
+import adminAuth from '../middleware/adminAuth.js';
+import auth from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
+import jwt from 'jsonwebtoken';
+
+const router = Router();
 
 // Get all colleges (public route with optional auth)
 router.get('/', async (req, res) => {
@@ -256,4 +258,4 @@ router.post('/:id/unjoin', auth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+export default router; 
