@@ -1,48 +1,39 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-// Configure storage for different types of uploads
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '../uploads/profile');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Determine the destination based on the field name
-    let uploadPath;
-    if (file.fieldname === 'profilePicture') {
-      uploadPath = path.join(__dirname, '../uploads/profiles/');
-    } else if (file.fieldname === 'image') {
-      uploadPath = path.join(__dirname, '../uploads/colleges/');
-    } else if (file.fieldname === 'studentIdCard' || file.fieldname === 'facultyIdCard') {
-      uploadPath = path.join(__dirname, '../uploads/verification/');
-    } else {
-      uploadPath = path.join(__dirname, '../uploads/');
-    }
-    cb(null, uploadPath);
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter to allow image and PDF files for verification documents
+// File filter
 const fileFilter = (req, file, cb) => {
-  if (file.fieldname === 'studentIdCard' || file.fieldname === 'facultyIdCard') {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Please upload only images or PDF files for verification documents.'), false);
-    }
-  } else if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Not an image! Please upload only images.'), false);
+  // Accept images only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    return cb(new Error('Only image files are allowed!'), false);
   }
+  cb(null, true);
 };
 
+// Configure multer
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB max file size
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
 
