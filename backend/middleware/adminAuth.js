@@ -16,6 +16,7 @@ export const adminAuth = async (req, res, next) => {
     }
 
     req.userId = decoded.userId;
+    req.user = user;
     req.isAdmin = true;
     next();
   } catch (error) {
