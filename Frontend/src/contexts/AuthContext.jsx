@@ -87,7 +87,7 @@ export function AuthProvider({ children }) {
    */
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/login', {
+      const response = await axios.post('http://localhost:8080/api/auth/login', {
         email,
         password
       }, {
@@ -122,7 +122,7 @@ export function AuthProvider({ children }) {
       console.error('Login error:', error);
       return { 
         success: false, 
-        error: error.response?.data?.message || 'Login failed. Please try again.' 
+        error: error
       };
     }
   };
