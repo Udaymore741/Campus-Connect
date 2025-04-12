@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import Navbar from "@/components/Navbar";
 
 export default function QuestionDetail() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const answerId = searchParams.get('answerId');
   const { user } = useAuth();
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -17,11 +19,35 @@ export default function QuestionDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
     window.scrollTo(0, 0);
+    
+    // Check if ID exists
+    if (!id) {
+      setError('Question ID is required');
+      setLoading(false);
+      return;
+    }
+    
     fetchQuestionAndAnswers();
   }, [id]);
+
+  useEffect(() => {
+    if (answerId && answers.length > 0) {
+      const answerElement = document.getElementById(`answer-${answerId}`);
+      if (answerElement) {
+        answerElement.scrollIntoView({ behavior: 'smooth' });
+        // Add highlight effect
+        answerElement.classList.add('bg-yellow-50', 'border-l-4', 'border-yellow-500');
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          answerElement.classList.remove('bg-yellow-50', 'border-l-4', 'border-yellow-500');
+        }, 3000);
+      }
+    }
+  }, [answerId, answers]);
 
   const fetchQuestionAndAnswers = async () => {
     try {
@@ -165,12 +191,13 @@ export default function QuestionDetail() {
                 </h2>
                 
                 {answers.map((answer) => (
-                  <AnswerCard 
-                    key={answer._id} 
-                    answer={answer}
-                    isQuestionAuthor={question.author._id === user?.id}
-                    onAnswerUpdated={fetchQuestionAndAnswers}
-                  />
+                  <div key={answer._id} id={`answer-${answer._id}`}>
+                    <AnswerCard 
+                      answer={answer}
+                      isQuestionAuthor={question.author._id === user?.id}
+                      onAnswerUpdated={fetchQuestionAndAnswers}
+                    />
+                  </div>
                 ))}
                 
                 {answers.length === 0 && (
