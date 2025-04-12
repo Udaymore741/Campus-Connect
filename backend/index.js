@@ -14,7 +14,7 @@ import { dirname } from 'path';
 
 import { initializeSocket } from './services/socketService.js';
 import User from './models/User.js';
-import auth from './middleware/auth.js';
+import { auth } from './middleware/auth.js';
 import upload from './middleware/upload.js';
 import collegeRoutes from './routes/collegeRoutes.js';
 import enrollmentRoutes from './routes/enrollment.js';
@@ -24,6 +24,7 @@ import adminRoutes from './routes/admin.js';
 import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
 import userRoutes from './routes/user.js';
+import reportRoutes from './routes/reportRoutes.js';
 
 config();
 
@@ -82,6 +83,9 @@ app.use('/api/profile', profileRoutes);
 
 // Use user routes
 app.use('/api/user', userRoutes);
+
+// Use report routes
+app.use('/api/reports', reportRoutes);
 
 // Create admin user if it doesn't exist
 const createAdminUser = async () => {
