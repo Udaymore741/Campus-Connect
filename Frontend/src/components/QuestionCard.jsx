@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ThumbsUp, MessageCircle, Heart, Share2, Eye } from "lucide-react";
+import { ThumbsUp, MessageCircle, Heart, Share2, Eye, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { ReportDialog } from "./ReportDialog";
 
 export default function QuestionCard({ question, isDetailed = false }) {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ export default function QuestionCard({ question, isDetailed = false }) {
   const [likesCount, setLikesCount] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
   const [hasLiked, setHasLiked] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   useEffect(() => {
     // Initialize likes count and hasLiked state
@@ -45,6 +47,21 @@ export default function QuestionCard({ question, isDetailed = false }) {
       toast.error(error.response?.data?.message || 'Failed to update like');
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleReport = async (data) => {
+    try {
+      await axios.post('http://localhost:8080/api/reports', {
+        reportedContent: question._id,
+        contentType: 'question',
+        category: data.category,
+        description: data.description
+      }, { withCredentials: true });
+      toast.success('Report submitted successfully');
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toast.error('Failed to submit report');
     }
   };
 
@@ -149,10 +166,22 @@ export default function QuestionCard({ question, isDetailed = false }) {
               navigator.clipboard.writeText(`${window.location.origin}/question/${question._id}`);
               toast.success('Link copied to clipboard');
             }}
-            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors ml-auto"
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <Share2 className="h-4 w-4" />
             <span>Share</span>
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsReportDialogOpen(true);
+            }}
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Flag className="h-4 w-4" />
+            <span>Report</span>
           </button>
         </div>
       </div>
@@ -168,11 +197,19 @@ export default function QuestionCard({ question, isDetailed = false }) {
   }
 
   return (
-    <div 
-      onClick={handleCardClick}
-      className="bg-card rounded-xl shadow-sm p-5 border border-border card-hover animate-fade-in cursor-pointer"
-    >
-      <CardContent />
-    </div>
+    <>
+      <div 
+        onClick={handleCardClick}
+        className="bg-card rounded-xl shadow-sm p-5 border border-border card-hover animate-fade-in cursor-pointer"
+      >
+        <CardContent />
+      </div>
+
+      <ReportDialog
+        isOpen={isReportDialogOpen}
+        onClose={() => setIsReportDialogOpen(false)}
+        onSubmit={handleReport}
+      />
+    </>
   );
 } 
