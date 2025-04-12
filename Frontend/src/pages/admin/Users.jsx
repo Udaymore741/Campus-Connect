@@ -47,10 +47,20 @@ const UserManagementPage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Add server URL constant
+  const SERVER_URL = "http://localhost:8080";
+
+  // Helper function to get profile picture URL
+  const getProfilePictureUrl = (profilePicture) => {
+    if (!profilePicture) return null;
+    if (profilePicture.startsWith('http')) return profilePicture;
+    return `${SERVER_URL}/${profilePicture}`;
+  };
+
   // Fetch users
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin", "users"],
-    queryFn: () => fetch("http://localhost:8080/api/users", {
+    queryFn: () => fetch("http://localhost:8080/api/admin/users", {
       credentials: 'include'
     }).then((res) => res.json()),
   });
@@ -182,12 +192,15 @@ const UserManagementPage = () => {
               <Card key={user._id}>
                 <CardContent className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full overflow-hidden bg-primary/10">
+                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-primary/10">
                       {user.profilePicture ? (
                         <img
-                          src={user.profilePicture}
+                          src={getProfilePictureUrl(user.profilePicture)}
                           alt={user.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-primary text-sm font-medium">
@@ -238,12 +251,15 @@ const UserManagementPage = () => {
               <Card key={user._id}>
                 <CardContent className="p-4">
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="h-16 w-16 rounded-full overflow-hidden bg-primary/10">
+                    <div className="relative h-16 w-16 rounded-full overflow-hidden bg-primary/10">
                       {user.profilePicture ? (
                         <img
-                          src={user.profilePicture}
+                          src={getProfilePictureUrl(user.profilePicture)}
                           alt={user.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-primary text-lg font-medium">
