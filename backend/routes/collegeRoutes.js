@@ -2,8 +2,8 @@ import express from 'express';
 import { Router } from 'express';
 import College from '../models/College.js';
 import User from '../models/User.js';
-import adminAuth from '../middleware/adminAuth.js';
-import auth from '../middleware/auth.js';
+import { adminAuth } from '../middleware/adminAuth.js';
+import { auth } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 import jwt from 'jsonwebtoken';
 
