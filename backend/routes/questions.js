@@ -2,7 +2,7 @@ import express from 'express';
 import { Router } from 'express';
 import Question from '../models/Question.js';
 import Answer from '../models/Answer.js';
-import auth from '../middleware/auth.js';
+import { auth } from '../middleware/auth.js';
 import { 
   emitNewQuestion, 
   emitQuestionUpdate, 

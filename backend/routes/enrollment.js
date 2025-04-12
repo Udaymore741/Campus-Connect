@@ -3,7 +3,7 @@ import { Router } from 'express';
 import User from '../models/User.js';
 import College from '../models/College.js';
 import Enrollment from '../models/Enrollment.js';
-import auth from '../middleware/auth.js';
+import { auth } from '../middleware/auth.js';
 
 const router = Router();
 

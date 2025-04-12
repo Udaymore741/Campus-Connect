@@ -1,7 +1,7 @@
 import express from 'express';
 import { Router } from 'express';
 import User from '../models/User.js';
-import auth from '../middleware/auth.js';
+import { auth } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 
 const router = Router();
@@ -130,7 +130,7 @@ router.post('/upload-picture', auth, upload.single('profilePicture'), async (req
     }
 
     // Update user's profile picture
-    user.profilePicture = `/uploads/profile/${req.file.filename}`;
+    user.profilePicture = `/uploads/profiles/${req.file.filename}`;
     await user.save();
 
     res.json({
