@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../uploads/profile');
+const uploadDir = path.join(__dirname, '../uploads/profiles');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
