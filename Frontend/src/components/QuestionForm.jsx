@@ -6,11 +6,56 @@ import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 
 const categories = [
-  { id: 'academic', name: 'Academic' },
-  { id: 'campus-life', name: 'Campus Life' },
-  { id: 'admissions', name: 'Admissions' },
-  { id: 'careers', name: 'Careers' },
-  { id: 'general', name: 'General' }
+  { 
+    id: 'academic', 
+    name: 'Academic', 
+    description: 'Questions about courses, majors, and academic programs'
+  },
+  { 
+    id: 'campus-life', 
+    name: 'Campus Life', 
+    description: 'Questions about campus facilities, events, and student life'
+  },
+  { 
+    id: 'admissions', 
+    name: 'Admissions', 
+    description: 'Questions about college admissions process and requirements'
+  },
+  { 
+    id: 'careers', 
+    name: 'Careers', 
+    description: 'Questions about job placements, internships, and career guidance'
+  },
+  { 
+    id: 'general', 
+    name: 'General', 
+    description: 'General questions about college and student life'
+  },
+  { 
+    id: 'exams-results', 
+    name: 'Exams & Results', 
+    description: 'Questions about examinations, grading, and academic results'
+  },
+  { 
+    id: 'scholarship', 
+    name: 'Scholarship', 
+    description: 'Questions about scholarships and financial aid'
+  },
+  { 
+    id: 'fresher-queries', 
+    name: 'Fresher Queries', 
+    description: 'Questions specifically for new students and freshers'
+  },
+  { 
+    id: 'alumni-network', 
+    name: 'Alumni Network', 
+    description: 'Questions and discussions with college alumni'
+  },
+  { 
+    id: 'academic-projects', 
+    name: 'Academic Projects', 
+    description: 'Questions about academic and research projects'
+  }
 ];
 
 export default function QuestionForm({ collegeId, onQuestionAdded }) {
