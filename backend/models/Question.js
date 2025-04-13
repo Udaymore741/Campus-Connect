@@ -23,7 +23,18 @@ const questionSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['academic', 'campus-life', 'admissions', 'careers', 'general']
+    enum: [
+      'academic',
+      'campus-life',
+      'admissions',
+      'careers',
+      'general',
+      'exams-results',
+      'scholarship',
+      'fresher-queries',
+      'alumni-network',
+      'academic-projects'
+    ]
   },
   tags: [{
     type: String,
