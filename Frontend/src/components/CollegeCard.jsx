@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { School, MapPin, Users, MessageSquare, CheckCircle2, UserPlus } from "lucide-react";
+import { School, Users, MessageSquare, CheckCircle2, UserPlus } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
 
@@ -9,6 +9,7 @@ export default function CollegeCard({ college, minimal = false }) {
   const [imageError, setImageError] = useState(false);
   const [imageUrl, setImageUrl] = useState(college.image);
   const [isEnrolled, setIsEnrolled] = useState(college.isEnrolled || false);
+  const [memberCount, setMemberCount] = useState(college.members || 0);
   const [isLoading, setIsLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -28,13 +29,17 @@ export default function CollegeCard({ college, minimal = false }) {
     setIsLoading(true);
     try {
       const endpoint = isEnrolled ? 'unjoin' : 'join';
-      await axios.post(`http://localhost:8080/api/colleges/${college._id}/${endpoint}`, {}, {
+      const response = await axios.post(`http://localhost:8080/api/colleges/${college._id}/${endpoint}`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
 
       setIsEnrolled(!isEnrolled);
+      // Update member count from response
+      if (response.data.members !== undefined) {
+        setMemberCount(response.data.members);
+      }
     } catch (error) {
       console.error('Error toggling enrollment:', error);
       // Handle error (e.g., show toast notification)
@@ -62,34 +67,18 @@ export default function CollegeCard({ college, minimal = false }) {
         )}
       </div>
       <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{college.name}</h3>
+        <h3 className="text-xl font-semibold mb-4">{college.name}</h3>
         
-        {!minimal && (
-          <>
-            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-              {college.description}
-            </p>
-            
-            <div className="space-y-2 mb-4">
-              {college.location && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>{college.location}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>{college.members?.toLocaleString() || '0'}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{college.questionsCount?.toLocaleString() || '0'}</span>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+          <div className="flex items-center gap-1">
+            <Users className="h-4 w-4" />
+            <span>{memberCount.toLocaleString()} Members</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <MessageSquare className="h-4 w-4" />
+            <span>{college.questionsCount?.toLocaleString() || '0'} Questions</span>
+          </div>
+        </div>
 
         <div className="flex gap-2">
           <Link
@@ -136,8 +125,6 @@ CollegeCard.propTypes = {
     _id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
-    description: PropTypes.string,
-    location: PropTypes.string,
     members: PropTypes.number,
     questionsCount: PropTypes.number,
     isEnrolled: PropTypes.bool

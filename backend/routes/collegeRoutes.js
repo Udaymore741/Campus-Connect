@@ -2,6 +2,8 @@ import express from 'express';
 import { Router } from 'express';
 import College from '../models/College.js';
 import User from '../models/User.js';
+import Question from '../models/Question.js';
+import Enrollment from '../models/Enrollment.js';
 import { adminAuth } from '../middleware/adminAuth.js';
 import { auth } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
@@ -30,14 +32,21 @@ router.get('/', async (req, res) => {
       }
     }
 
-    // Map colleges and add enrollment status
-    const collegesWithStatus = colleges.map(college => ({
-      ...college.toObject(),
-      image: college.image ? `http://localhost:8080${college.image}` : '',
-      isEnrolled: userEnrollments.includes(college._id.toString())
+    // Get member counts and question counts for each college
+    const collegesWithCounts = await Promise.all(colleges.map(async college => {
+      const memberCount = await Enrollment.countDocuments({ college: college._id });
+      const questionCount = await Question.countDocuments({ college: college._id });
+      
+      return {
+        ...college.toObject(),
+        image: college.image ? `http://localhost:8080${college.image}` : '',
+        isEnrolled: userEnrollments.includes(college._id.toString()),
+        members: memberCount,
+        questionsCount: questionCount
+      };
     }));
 
-    res.json(collegesWithStatus);
+    res.json(collegesWithCounts);
   } catch (error) {
     console.error('Error fetching colleges:', error);
     res.status(500).json({ message: 'Error fetching colleges' });
@@ -51,8 +60,18 @@ router.get('/:id', async (req, res) => {
     if (!college) {
       return res.status(404).json({ message: 'College not found' });
     }
-    const collegeData = college.toObject();
-    collegeData.image = college.image ? `http://localhost:8080${college.image}` : '';
+
+    // Get member count and question count
+    const memberCount = await Enrollment.countDocuments({ college: college._id });
+    const questionCount = await Question.countDocuments({ college: college._id });
+
+    const collegeData = {
+      ...college.toObject(),
+      image: college.image ? `http://localhost:8080${college.image}` : '',
+      members: memberCount,
+      questionsCount: questionCount
+    };
+
     res.json(collegeData);
   } catch (error) {
     console.error('Error fetching college:', error);
@@ -198,27 +217,30 @@ router.post('/:id/join', auth, async (req, res) => {
     }
 
     // Check if user is already enrolled
-    const isEnrolled = user.enrolledColleges.some(
-      enrollment => enrollment.college.toString() === college._id.toString()
-    );
+    const existingEnrollment = await Enrollment.findOne({
+      user: req.userId,
+      college: college._id
+    });
 
-    if (isEnrolled) {
+    if (existingEnrollment) {
       return res.status(400).json({ message: 'Already enrolled in this college' });
     }
 
-    // Add college to user's enrollments
-    user.enrolledColleges.push({
-      college: college._id,
-      enrolledAt: new Date()
+    // Create new enrollment
+    const enrollment = new Enrollment({
+      user: req.userId,
+      college: college._id
     });
 
-    await user.save();
+    await enrollment.save();
 
-    // Increment college members count
-    college.members = (college.members || 0) + 1;
-    await college.save();
+    // Get updated member count
+    const memberCount = await Enrollment.countDocuments({ college: college._id });
 
-    res.json({ message: 'Successfully joined college' });
+    res.json({ 
+      message: 'Successfully joined college',
+      members: memberCount
+    });
   } catch (error) {
     console.error('Error joining college:', error);
     res.status(500).json({ message: 'Error joining college' });
@@ -238,20 +260,19 @@ router.post('/:id/unjoin', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Remove college from user's enrollments
-    user.enrolledColleges = user.enrolledColleges.filter(
-      enrollment => enrollment.college.toString() !== college._id.toString()
-    );
+    // Remove enrollment
+    await Enrollment.findOneAndDelete({
+      user: req.userId,
+      college: college._id
+    });
 
-    await user.save();
+    // Get updated member count
+    const memberCount = await Enrollment.countDocuments({ college: college._id });
 
-    // Decrement college members count
-    if (college.members > 0) {
-      college.members -= 1;
-      await college.save();
-    }
-
-    res.json({ message: 'Successfully unjoined college' });
+    res.json({ 
+      message: 'Successfully unjoined college',
+      members: memberCount
+    });
   } catch (error) {
     console.error('Error unjoining college:', error);
     res.status(500).json({ message: 'Error unjoining college' });

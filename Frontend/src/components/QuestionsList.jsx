@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, ThumbsUp, Eye, Clock, Plus } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Eye, Clock, Plus, Search } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import io from 'socket.io-client';
@@ -14,6 +14,7 @@ export default function QuestionsList({ collegeId, category }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('newest');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchQuestions();
@@ -59,7 +60,8 @@ export default function QuestionsList({ collegeId, category }) {
       const response = await axios.get(`http://localhost:8080/api/questions/college/${collegeId}`, {
         params: { 
           category,
-          sort: sortBy
+          sort: sortBy,
+          search: searchQuery
         },
         withCredentials: true
       });
@@ -105,6 +107,16 @@ export default function QuestionsList({ collegeId, category }) {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Questions</h2>
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search questions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}

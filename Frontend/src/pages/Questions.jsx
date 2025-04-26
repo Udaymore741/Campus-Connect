@@ -1,37 +1,70 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import QuestionCard from "../components/QuestionCard";
 import CategorySelector from "../components/CategorySelector";
 import QuestionForm from "../components/QuestionForm";
-import { Filter, SortAsc, SortDesc } from "lucide-react";
+import { Filter, SortAsc, SortDesc, Search } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
 export default function Questions() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || null);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [questions, setQuestions] = useState([]);
   const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const collegeId = searchParams.get("college");
   
+  // Debounced search
+  const debouncedSearch = useCallback(
+    (value) => {
+      const params = new URLSearchParams(searchParams);
+      if (value) {
+        params.set('search', value);
+      } else {
+        params.delete('search');
+      }
+      setSearchParams(params);
+    },
+    [searchParams, setSearchParams]
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      debouncedSearch(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, debouncedSearch]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchQuestions();
-  }, [selectedCategory, sortOrder, collegeId]);
+  }, [selectedCategory, sortOrder, collegeId, searchQuery]);
 
   const fetchQuestions = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      if (!collegeId) {
+        setQuestions([]);
+        setLoading(false);
+        return;
+      }
+
       let url = `http://localhost:8080/api/questions/college/${collegeId}`;
       const params = new URLSearchParams();
       
       if (selectedCategory) {
         params.append('category', selectedCategory);
+      }
+      
+      if (searchQuery) {
+        params.append('search', searchQuery);
       }
       
       switch (sortOrder) {
@@ -60,22 +93,11 @@ export default function Questions() {
     } catch (error) {
       console.error('Error fetching questions:', error);
       setError(error.response?.data?.message || 'Failed to fetch questions');
-      toast.error('Failed to load questions. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to load questions. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
-  // Update URL when category changes
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    if (selectedCategory) {
-      params.set('category', selectedCategory);
-    } else {
-      params.delete('category');
-    }
-    setSearchParams(params);
-  }, [selectedCategory, setSearchParams]);
 
   if (!collegeId) {
     return (
@@ -101,13 +123,19 @@ export default function Questions() {
             <div className="lg:col-span-2">
               <h1 className="text-3xl font-bold mb-6">Questions</h1>
               
-              {/* Filters */}
+              {/* Search and Filters */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-medium flex items-center">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </h2>
+                  <div className="relative flex-1 max-w-md">
+                    <input
+                      type="text"
+                      placeholder="Search questions..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
                   
                   <div className="flex items-center space-x-2">
                     <button
@@ -176,7 +204,12 @@ export default function Questions() {
                   ))
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">No questions found for this category.</p>
+                    <p className="text-muted-foreground">
+                      {searchQuery 
+                        ? `No questions found matching "${searchQuery}"`
+                        : "No questions found for this category."
+                      }
+                    </p>
                   </div>
                 )}
               </div>
@@ -184,7 +217,9 @@ export default function Questions() {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <QuestionForm collegeId={collegeId} onQuestionAdded={fetchQuestions} />
+              <div className="sticky top-24">
+                <QuestionForm collegeId={collegeId} onQuestionAdded={fetchQuestions} />
+              </div>
             </div>
           </div>
         </div>

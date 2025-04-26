@@ -224,7 +224,7 @@ export default function CollegePage() {
             className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full"
             onClick={() => {
               setActiveSection('questions');
-              navigate(`/questions?college=${id}`);
+              navigate(`/questions?college=${college._id}`);
             }}
           >
             <h2 className="text-xl font-semibold mb-2">Questions</h2>

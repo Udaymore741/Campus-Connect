@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, User, ShieldCheck } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Menu, X, User, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profileImageError, setProfileImageError] = useState(false);
   
@@ -38,19 +38,13 @@ export default function Navbar() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showProfileMenu]);
 
-  // Handle search
-  /** @param {React.FormEvent} e */
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/questions?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   const handleLogout = async () => {
     await logout();
     navigate('/auth');
   };
+
+  // Check if current page is home page
+  const isHomePage = location.pathname === '/';
 
   return (
     <nav
@@ -83,28 +77,6 @@ export default function Navbar() {
             </>
           ) : null}
         </div>
-
-        {/* Search Form */}
-        {user && (
-          <form 
-            onSubmit={handleSearch}
-            className={cn(
-              "hidden md:flex relative items-center transition-all duration-300",
-              isScrolled ? "w-64" : "w-72"
-            )}
-          >
-            <input
-              type="text"
-              placeholder="Search questions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-            <button type="submit" className="absolute right-3">
-              <Search className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </form>
-        )}
 
         {/* User Actions */}
         <div className="hidden md:flex items-center space-x-4">
@@ -247,21 +219,6 @@ export default function Navbar() {
                 >
                   About
                 </Link>
-                
-                <div className="pt-4 mt-4 border-t border-border">
-                  <form onSubmit={handleSearch} className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search questions..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full py-2 px-4 pr-10 rounded-full bg-secondary border-none focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                    <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Search className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  </form>
-                </div>
 
                 <div className="pt-4 mt-4 border-t border-border">
                   <Link

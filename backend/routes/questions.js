@@ -16,7 +16,7 @@ const router = Router();
 // Get all questions for a college
 router.get('/college/:collegeId', async (req, res) => {
   try {
-    const { category, sort = 'newest' } = req.query;
+    const { category, sort = 'newest', search } = req.query;
     const query = { college: req.params.collegeId };
     
     if (category) {
@@ -38,7 +38,22 @@ router.get('/college/:collegeId', async (req, res) => {
         sortOption = { createdAt: -1 };
     }
 
-    const questions = await Question.find(query)
+    let questions;
+    if (search) {
+      // Use regex search for more flexible matching
+      const searchRegex = new RegExp(search, 'i');
+      questions = await Question.find({
+        $and: [
+          { college: req.params.collegeId },
+          {
+            $or: [
+              { title: searchRegex },
+              { content: searchRegex },
+              { tags: searchRegex }
+            ]
+          }
+        ]
+      })
       .sort(sortOption)
       .populate('author', 'name profilePicture')
       .populate({
@@ -48,11 +63,28 @@ router.get('/college/:collegeId', async (req, res) => {
           select: 'name profilePicture'
         }
       });
+    } else {
+      // Regular query without search
+      questions = await Question.find(query)
+        .sort(sortOption)
+        .populate('author', 'name profilePicture')
+        .populate({
+          path: 'answers',
+          populate: {
+            path: 'author',
+            select: 'name profilePicture'
+          }
+        });
+    }
 
     res.json(questions);
   } catch (error) {
     console.error('Error fetching questions:', error);
-    res.status(500).json({ message: 'Error fetching questions' });
+    res.status(500).json({ 
+      message: 'Error fetching questions',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
