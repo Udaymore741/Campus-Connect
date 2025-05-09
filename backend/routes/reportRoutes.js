@@ -38,7 +38,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Get all reports (admin only)
-router.get('/', isAdmin, async (req, res) => {
+router.get('/', auth, isAdmin, async (req, res) => {
   try {
     const { type, status, search } = req.query;
     let query = {};
@@ -58,17 +58,13 @@ router.get('/', isAdmin, async (req, res) => {
       ];
     }
 
-    console.log('Query:', query); // Add this for debugging
-
     const reports = await Report.find(query)
       .populate('reporter', 'name email')
       .sort({ createdAt: -1 });
     
-    console.log('Found reports:', reports.length); // Add this for debugging
-    
     res.json(reports);
   } catch (error) {
-    console.error('Error fetching reports:', error); // Add this for debugging
+    console.error('Error fetching reports:', error);
     res.status(500).json({ message: error.message });
   }
 });

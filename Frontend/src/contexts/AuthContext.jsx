@@ -168,14 +168,19 @@ export function AuthProvider({ children }) {
    */
   const updateProfile = async (formData) => {
     try {
-      const response = await axios.patch('http://localhost:8080/api/profile', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
+      const response = await axios.put('http://localhost:8080/api/profile/update', formData, {
         withCredentials: true
       });
-      setUser(response.data);
-      return { success: true };
+      
+      if (response.data.user) {
+        setUser(response.data.user);
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: 'Failed to update profile. Please try again.' 
+        };
+      }
     } catch (error) {
       console.error('Profile update error:', error);
       return { 

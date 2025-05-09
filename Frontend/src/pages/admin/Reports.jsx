@@ -34,10 +34,17 @@ const Reports = () => {
 
   useEffect(() => {
     // Check if user is admin
-    if (!user || user.role !== 'admin') {
+    if (!user) {
+      navigate('/auth?mode=login');
+      return;
+    }
+    
+    if (user.role !== 'admin') {
+      toast.error('Admin access required');
       navigate('/');
       return;
     }
+    
     fetchReports();
   }, [filterType, filterStatus, searchQuery, user]);
 
@@ -50,14 +57,20 @@ const Reports = () => {
           status: filterStatus === 'all' ? undefined : filterStatus,
           search: searchQuery || undefined
         },
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       setReports(response.data);
     } catch (error) {
       console.error('Error fetching reports:', error);
       if (error.response?.status === 401) {
-        toast.error('Please log in as an admin to view reports');
+        toast.error('Please log in to view reports');
         navigate('/auth?mode=login');
+      } else if (error.response?.status === 403) {
+        toast.error('Admin access required');
+        navigate('/');
       } else {
         toast.error('Failed to fetch reports');
       }

@@ -76,7 +76,8 @@ export default function Profile() {
     const fetchUserData = async () => {
       setIsLoading(prev => ({ ...prev, userData: true }));
       try {
-        const response = await axios.get('http://localhost:8080/api/profile', {
+        const endpoint = userId ? `http://localhost:8080/api/profile/${userId}` : 'http://localhost:8080/api/profile';
+        const response = await axios.get(endpoint, {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
@@ -160,7 +161,8 @@ export default function Profile() {
     const fetchAdditionalInfo = async () => {
       setIsLoading(prev => ({ ...prev, additionalInfo: true }));
       try {
-        const response = await axios.get('http://localhost:8080/api/profile/additional-info', {
+        const endpoint = userId ? `http://localhost:8080/api/profile/${userId}/additional-info` : 'http://localhost:8080/api/profile/additional-info';
+        const response = await axios.get(endpoint, {
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'

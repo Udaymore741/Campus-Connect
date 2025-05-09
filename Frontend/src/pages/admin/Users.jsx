@@ -52,8 +52,6 @@ const UserManagementPage = () => {
   const [viewMode, setViewMode] = useState("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();

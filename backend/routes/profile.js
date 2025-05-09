@@ -186,4 +186,108 @@ router.post('/upload-picture', auth, upload.single('profilePicture'), async (req
   }
 });
 
+// Update general profile information
+router.put('/update', auth, async (req, res) => {
+  try {
+    const {
+      name,
+      department,
+      degree,
+      year,
+      passoutYear,
+      rollNumber,
+      position,
+      qualification,
+      specialization,
+      experience,
+      grade,
+      dateOfBirth,
+      bloodGroup,
+      socialLinks
+    } = req.body;
+
+    const updateData = {};
+    
+    // Only update fields that are provided
+    if (name) updateData.name = name;
+    if (department) updateData.department = department;
+    if (degree) updateData.degree = degree;
+    if (year) updateData.year = year;
+    if (passoutYear) updateData.passoutYear = passoutYear;
+    if (rollNumber) updateData.rollNumber = rollNumber;
+    if (position) updateData.position = position;
+    if (qualification) updateData.qualification = qualification;
+    if (specialization) updateData.specialization = specialization;
+    if (experience) updateData.experience = experience;
+    if (grade) updateData.grade = grade;
+    if (dateOfBirth) updateData.dateOfBirth = dateOfBirth;
+    if (bloodGroup) updateData.bloodGroup = bloodGroup;
+    if (socialLinks) updateData.socialLinks = socialLinks;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: updateData },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      user
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Error updating profile' });
+  }
+});
+
+// Get user profile by ID
+router.get('/:userId', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Ensure profile picture URL is complete
+    if (user.profilePicture && !user.profilePicture.startsWith('http')) {
+      user.profilePicture = `http://localhost:8080${user.profilePicture}`;
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Error fetching user profile' });
+  }
+});
+
+// Get user's additional information by ID
+router.get('/:userId/additional-info', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('skills achievements education socialLinks');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      skills: user.skills || [],
+      achievements: user.achievements || [],
+      education: user.education || [],
+      socialLinks: user.socialLinks || {
+        github: "",
+        twitter: "",
+        linkedin: ""
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user additional info:', error);
+    res.status(500).json({ message: 'Error fetching user additional information' });
+  }
+});
+
 export default router; 
