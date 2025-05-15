@@ -1,60 +1,56 @@
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import axios from "axios";
 
-export default function AnswerForm({ questionId }) {
-  const [answer, setAnswer] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function AnswerForm({ questionId, onAnswerAdded }) {
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!answer.trim()) {
-      toast.error("Answer cannot be empty");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/api/questions/${questionId}/answers`,
+        { content },
+        { withCredentials: true }
+      );
+
       toast.success("Answer posted successfully!");
-      setAnswer("");
-      setIsSubmitting(false);
-    }, 1000);
+      setContent("");
+      if (onAnswerAdded) {
+        onAnswerAdded(response.data);
+      }
+    } catch (error) {
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to post answer. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="bg-card rounded-xl p-5 border border-border animate-fade-in">
-      <h3 className="text-lg font-semibold mb-3">Your Answer</h3>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Share your knowledge or experience..."
-            rows={4}
-            className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y"
-          />
-          
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={cn(
-                "flex items-center gap-2 px-6 py-2 rounded-lg transition-colors",
-                "bg-primary text-primary-foreground hover:bg-primary/90",
-                isSubmitting && "opacity-70 cursor-not-allowed"
-              )}
-            >
-              <span>{isSubmitting ? "Posting..." : "Post Answer"}</span>
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Your Answer</label>
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Write your answer here..."
+          required
+          className="min-h-[150px]"
+        />
+      </div>
+
+      <Button type="submit" disabled={loading}>
+        {loading ? "Posting..." : "Post Answer"}
+      </Button>
+    </form>
   );
 } 

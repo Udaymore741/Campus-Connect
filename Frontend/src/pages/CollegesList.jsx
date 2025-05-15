@@ -71,7 +71,7 @@ export default function CollegesList() {
         });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update enrollment status");
+      toast.error(error.response?.data?.message || "Failed to update enrollment status", { duration: 3000 });
     }
   };
 

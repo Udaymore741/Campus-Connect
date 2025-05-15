@@ -149,7 +149,7 @@ export default function Auth() {
       if (mode === "login") {
         result = await login(email, password);
         if (result.success) {
-          toast.success("Logged in successfully!");
+          toast.success("Logged in successfully!", { duration: 3000 });
         } else if (result.error?.response?.data?.isSuspended) {
           setSuspensionDialog({
             isOpen: true,
@@ -158,7 +158,7 @@ export default function Auth() {
             suspensionEndsAt: result.error.response.data.suspensionEndsAt
           });
         } else {
-          toast.error(result.error?.response?.data?.message || result.error || "Login failed");
+          toast.error(result.error?.response?.data?.message || result.error || "Login failed", { duration: 3000 });
         }
       } else {
         const formData = new FormData();
@@ -188,10 +188,10 @@ export default function Auth() {
 
         result = await register(formData);
         if (result.success) {
-          toast.success("Account created successfully!");
+          toast.success("Account created successfully!", { duration: 3000 });
           navigate("/auth?mode=login");
         } else {
-          toast.error(result.error);
+          toast.error(result.error, { duration: 3000 });
         }
       }
     } catch (error) {
@@ -204,7 +204,7 @@ export default function Auth() {
           suspensionEndsAt: error.response.data.suspensionEndsAt
         });
       } else {
-        toast.error(error?.response?.data?.message || "An unexpected error occurred");
+        toast.error(error?.response?.data?.message || "An unexpected error occurred", { duration: 3000 });
       }
     } finally {
       setIsSubmitting(false);

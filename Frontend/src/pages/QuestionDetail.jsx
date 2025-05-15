@@ -68,7 +68,7 @@ export default function QuestionDetail() {
     } catch (error) {
       console.error('Error fetching question details:', error);
       setError(error.response?.data?.message || 'Failed to load question details');
-      toast.error('Failed to load question details. Please try again.');
+      toast.error('Failed to load question details. Please try again.', { duration: 3000 });
     } finally {
       setLoading(false);
     }
@@ -78,12 +78,12 @@ export default function QuestionDetail() {
     e.preventDefault();
     
     if (!user) {
-      toast.error("Please log in to post an answer");
+      toast.error("Please log in to post an answer", { duration: 3000 });
       return;
     }
     
     if (!newAnswer.trim()) {
-      toast.error("Please enter your answer");
+      toast.error("Please enter your answer", { duration: 3000 });
       return;
     }
     
@@ -99,10 +99,10 @@ export default function QuestionDetail() {
 
       setAnswers(prev => [response.data, ...prev]);
       setNewAnswer("");
-      toast.success("Answer posted successfully!");
+      toast.success("Answer posted successfully!", { duration: 3000 });
     } catch (error) {
       console.error('Error posting answer:', error);
-      toast.error(error.response?.data?.message || 'Failed to post answer');
+      toast.error(error.response?.data?.message || 'Failed to post answer', { duration: 3000 });
     } finally {
       setSubmitting(false);
     }

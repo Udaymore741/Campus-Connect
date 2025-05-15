@@ -10,6 +10,7 @@ import {
   emitQuestionDelete,
   emitLikeUpdate 
 } from '../services/socketService.js';
+import { moderateContent } from '../utils/contentModerator.js';
 
 const router = Router();
 
@@ -125,31 +126,37 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new question
-router.post('/', auth, contentFilter, async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
-    const { title, content, college, category, tags } = req.body;
-    
+    const { title, content, category, tags, college } = req.body;
+
+    if (!college) {
+      return res.status(400).json({ message: 'College is required to post a question.' });
+    }
+
+    // Moderate the content
+    const { isClean, flaggedWords } = await moderateContent(content);
+    if (!isClean) {
+      return res.status(400).json({ 
+        message: `Your content contains inappropriate language: ${flaggedWords.join(', ')}`,
+        flaggedWords
+      });
+    }
+
     const question = new Question({
       title,
       content,
-      author: req.userId,
-      college,
       category,
-      tags: tags || []
+      tags,
+      college,
+      author: req.user._id
     });
 
     await question.save();
-    
-    const populatedQuestion = await Question.findById(question._id)
-      .populate('author', 'name profilePicture');
-
-    // Emit socket event for new question
-    emitNewQuestion(college, populatedQuestion);
-
-    res.status(201).json(populatedQuestion);
+    res.status(201).json(question);
   } catch (error) {
     console.error('Error creating question:', error);
-    res.status(500).json({ message: 'Error creating question' });
+    res.status(500).json({ message: error.message || 'Error creating question' });
   }
 });
 
@@ -245,6 +252,37 @@ router.post('/:id/like', auth, async (req, res) => {
   } catch (error) {
     console.error('Error updating question likes:', error);
     res.status(500).json({ message: 'Error updating likes' });
+  }
+});
+
+// Add an answer to a question
+router.post('/:id/answers', auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    // Moderate the content
+    const isContentClean = await moderateContent(content);
+    if (!isContentClean) {
+      return res.status(400).json({ 
+        message: 'Your content contains inappropriate language. Please revise and try again.' 
+      });
+    }
+
+    const question = await Question.findById(req.params.id);
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    question.answers.push({
+      content,
+      author: req.user._id
+    });
+
+    await question.save();
+    res.json(question);
+  } catch (error) {
+    console.error('Error adding answer:', error);
+    res.status(500).json({ message: 'Error adding answer' });
   }
 });
 

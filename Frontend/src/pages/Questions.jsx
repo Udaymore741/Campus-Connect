@@ -3,10 +3,12 @@ import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import QuestionCard from "../components/QuestionCard";
 import CategorySelector from "../components/CategorySelector";
-import QuestionForm from "../components/QuestionForm";
 import { Filter, SortAsc, SortDesc, Search } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useContentModeration } from "@/hooks/useContentModeration";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Questions() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,6 +20,12 @@ export default function Questions() {
   const [error, setError] = useState(null);
   const [collegeName, setCollegeName] = useState("");
   const collegeId = searchParams.get("college");
+  const [questionForm, setQuestionForm] = useState({
+    title: "",
+    description: "",
+    category: "",
+  });
+  const { moderateContent, isChecking } = useContentModeration();
   
   // Debounced search
   const debouncedSearch = useCallback(
@@ -113,10 +121,58 @@ export default function Questions() {
     } catch (error) {
       console.error('Error fetching questions:', error);
       setError(error.response?.data?.message || 'Failed to fetch questions');
-      toast.error(error.response?.data?.message || 'Failed to load questions. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to load questions. Please try again.', { duration: 3000 });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { title, description, category } = questionForm;
+    if (!title.trim() || !description.trim() || !category) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    if (!collegeId) {
+      toast.error("No college selected. Please select a college before posting.");
+      return;
+    }
+    await moderateContent(description, async () => {
+      try {
+        const response = await axios.post(
+          "http://localhost:8080/api/questions",
+          { title, content: description, category, college: collegeId },
+          { withCredentials: true }
+        );
+        if (response.data) {
+          toast.success("Question posted successfully!", { duration: 3000 });
+          setQuestionForm({ title: "", description: "", category: "" });
+          fetchQuestions();
+        }
+      } catch (error) {
+        const flagged = error.response?.data?.flaggedWords;
+        if (flagged && flagged.length) {
+          toast.error(
+            `Inappropriate words detected: ${flagged.join(', ')}`,
+            { duration: 3000 }
+          );
+        } else {
+          toast.error(
+            error.response?.data?.message ||
+            error.message ||
+            "Error creating question",
+            { duration: 3000 }
+          );
+        }
+      }
+    });
+  };
+
+  const handleAnswerAdded = (updatedQuestion) => {
+    setQuestions(questions.map(q => 
+      q._id === updatedQuestion._id ? updatedQuestion : q
+    ));
   };
 
   if (!collegeId) {
@@ -222,7 +278,11 @@ export default function Questions() {
                   </div>
                 ) : questions.length > 0 ? (
                   questions.map((question) => (
-                    <QuestionCard key={question._id} question={question} />
+                    <QuestionCard 
+                      key={question._id} 
+                      question={question}
+                      onAnswerAdded={handleAnswerAdded}
+                    />
                   ))
                 ) : (
                   <div className="text-center py-8">
@@ -240,7 +300,67 @@ export default function Questions() {
             {/* Sidebar */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
-                <QuestionForm collegeId={collegeId} onQuestionAdded={fetchQuestions} />
+                <div className="bg-background border border-border rounded-2xl shadow-lg p-8">
+                  <h1 className="text-2xl font-bold text-foreground mb-6 text-center">Ask a Question</h1>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                      <label htmlFor="question-title" className="block text-sm font-medium text-foreground mb-1">Title</label>
+                      <input
+                        id="question-title"
+                        type="text"
+                        value={questionForm.title}
+                        onChange={e => setQuestionForm(f => ({ ...f, title: e.target.value }))}
+                        placeholder="Enter a short, clear title"
+                        className="w-full px-4 py-2 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+                        disabled={isChecking}
+                        maxLength={120}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="question-description" className="block text-sm font-medium text-foreground mb-1">Description</label>
+                      <Textarea
+                        id="question-description"
+                        value={questionForm.description}
+                        onChange={e => setQuestionForm(f => ({ ...f, description: e.target.value }))}
+                        placeholder="Describe your question in detail..."
+                        className="w-full min-h-[120px] px-4 py-2 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition resize-y"
+                        disabled={isChecking}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="question-category" className="block text-sm font-medium text-foreground mb-1">Category</label>
+                      <select
+                        id="question-category"
+                        value={questionForm.category}
+                        onChange={e => setQuestionForm(f => ({ ...f, category: e.target.value }))}
+                        className="w-full px-4 py-2 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+                        disabled={isChecking}
+                        required
+                      >
+                        <option value="">Select a category</option>
+                        <option value="academic">Academic</option>
+                        <option value="campus-life">Campus Life</option>
+                        <option value="admissions">Admissions</option>
+                        <option value="careers">Careers</option>
+                        <option value="general">General</option>
+                        <option value="exams-results">Exams & Results</option>
+                        <option value="scholarship">Scholarship</option>
+                        <option value="fresher-queries">Fresher Queries</option>
+                        <option value="alumni-network">Alumni Network</option>
+                        <option value="academic-projects">Academic Projects</option>
+                      </select>
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-lg shadow hover:bg-primary/90 transition disabled:opacity-60"
+                      disabled={isChecking}
+                    >
+                      {isChecking ? "Checking content..." : "Post Question"}
+                    </Button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
