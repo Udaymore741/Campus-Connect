@@ -151,7 +151,7 @@ const UserManagementPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Users</h2>
@@ -177,7 +177,7 @@ const UserManagementPage = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 animate-fade-in">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -198,11 +198,11 @@ const UserManagementPage = () => {
         </Tabs>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-16rem)]">
+      <ScrollArea className="h-[calc(100vh-16rem)] animate-fade-in">
         {viewMode === "list" ? (
           <div className="space-y-4">
-            {filteredUsers?.map((user) => (
-              <Card key={user._id}>
+            {filteredUsers?.map((user, idx) => (
+              <Card key={user._id} className="card-hover animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
                 <CardContent className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-4">
                     <div className="relative h-10 w-10 rounded-full overflow-hidden bg-primary/10">
@@ -246,8 +246,8 @@ const UserManagementPage = () => {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredUsers?.map((user) => (
-              <Card key={user._id}>
+            {filteredUsers?.map((user, idx) => (
+              <Card key={user._id} className="card-hover animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
                 <CardContent className="p-4">
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className="relative h-16 w-16 rounded-full overflow-hidden bg-primary/10">

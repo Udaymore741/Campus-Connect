@@ -70,7 +70,7 @@ export default function AdminColleges() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 animate-fade-in">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Manage Colleges</h1>
         <Button onClick={() => setShowAddDialog(true)}>
@@ -79,7 +79,7 @@ export default function AdminColleges() {
         </Button>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 animate-fade-in">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -108,7 +108,7 @@ export default function AdminColleges() {
           </Button>
         </div>
       ) : (
-        <div className="rounded-lg border">
+        <div className="rounded-lg border animate-fade-in">
           <Table>
             <TableHeader>
               <TableRow>
@@ -120,8 +120,8 @@ export default function AdminColleges() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredColleges.map((college) => (
-                <TableRow key={college._id}>
+              {filteredColleges.map((college, idx) => (
+                <TableRow key={college._id} className="hover:bg-muted/50 transition-colors animate-fade-in" style={{ animationDelay: `${idx * 40}ms` }}>
                   <TableCell>
                     <img
                       src={college.image}

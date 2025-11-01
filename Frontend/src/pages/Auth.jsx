@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import BackButton from "@/components/BackButton";
 
 const departments = [
   "Computer Science",
@@ -232,7 +233,12 @@ export default function Auth() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-muted/20 to-background">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-muted/20 to-background pt-24">
+        {/* Back to Home Button */}
+        <div className="absolute top-20 left-2 md:left-6 z-10">
+          <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+        </div>
+        
         <div className="w-full max-w-md">
           <div className="bg-card/95 backdrop-blur-sm rounded-xl shadow-lg border border-border/50 overflow-hidden animate-fade-in">
             {/* Header */}

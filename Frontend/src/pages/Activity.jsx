@@ -7,6 +7,7 @@ import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import BackButton from "@/components/BackButton";
 
 export default function Activity() {
   const [activeTab, setActiveTab] = useState("questions");
@@ -154,16 +155,19 @@ export default function Activity() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="container max-w-7xl mx-auto px-4 pt-28 pb-16">
+      <main className="container max-w-7xl mx-auto px-2 md:px-4 pt-20 md:pt-28 pb-16 animate-fade-in">
+        <div className="mb-4 md:mb-6">
+          <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center justify-between mb-8"
+          className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4"
         >
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Activity</h1>
-            <p className="text-muted-foreground">Track your contributions and engagement</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">My Activity</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Track your contributions and engagement</p>
           </div>
           <div className="flex items-center gap-4">
             <motion.button

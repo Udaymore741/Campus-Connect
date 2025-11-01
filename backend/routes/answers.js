@@ -25,7 +25,12 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Answer not found' });
     }
 
-    res.json(answer);
+    // Normalize profile picture URL
+    const aObj = answer.toObject ? answer.toObject() : answer;
+    if (aObj.author && aObj.author.profilePicture && !aObj.author.profilePicture.startsWith('http')) {
+      aObj.author.profilePicture = `http://localhost:8080${aObj.author.profilePicture}`;
+    }
+    res.json(aObj);
   } catch (error) {
     console.error('Error fetching answer:', error);
     res.status(500).json({ message: 'Error fetching answer' });
@@ -39,7 +44,15 @@ router.get('/question/:questionId', async (req, res) => {
       .populate('author', 'name profilePicture')
       .sort({ createdAt: -1 });
 
-    res.json(answers);
+    const normalized = answers.map(a => {
+      const aObj = a.toObject ? a.toObject() : a;
+      if (aObj.author && aObj.author.profilePicture && !aObj.author.profilePicture.startsWith('http')) {
+        aObj.author.profilePicture = `http://localhost:8080${aObj.author.profilePicture}`;
+      }
+      return aObj;
+    });
+
+    res.json(normalized);
   } catch (error) {
     console.error('Error fetching answers:', error);
     res.status(500).json({ message: 'Error fetching answers' });
@@ -67,10 +80,16 @@ router.post('/', auth, contentFilter, async (req, res) => {
     const populatedAnswer = await Answer.findById(answer._id)
       .populate('author', 'name profilePicture');
 
+    // Normalize URL
+    const paObj = populatedAnswer.toObject ? populatedAnswer.toObject() : populatedAnswer;
+    if (paObj.author && paObj.author.profilePicture && !paObj.author.profilePicture.startsWith('http')) {
+      paObj.author.profilePicture = `http://localhost:8080${paObj.author.profilePicture}`;
+    }
+
     // Emit socket event for new answer
     emitNewAnswer(questionId, populatedAnswer);
 
-    res.status(201).json(populatedAnswer);
+    res.status(201).json(paObj);
   } catch (error) {
     console.error('Error creating answer:', error);
     res.status(500).json({ message: 'Error creating answer' });
@@ -98,10 +117,15 @@ router.put('/:id', auth, async (req, res) => {
     const updatedAnswer = await Answer.findById(answer._id)
       .populate('author', 'name profilePicture');
 
+    const uaObj = updatedAnswer.toObject ? updatedAnswer.toObject() : updatedAnswer;
+    if (uaObj.author && uaObj.author.profilePicture && !uaObj.author.profilePicture.startsWith('http')) {
+      uaObj.author.profilePicture = `http://localhost:8080${uaObj.author.profilePicture}`;
+    }
+
     // Emit socket event for answer update
     emitAnswerUpdate(answer.question, updatedAnswer);
 
-    res.json(updatedAnswer);
+    res.json(uaObj);
   } catch (error) {
     console.error('Error updating answer:', error);
     res.status(500).json({ message: 'Error updating answer' });
@@ -221,10 +245,23 @@ router.post('/:id/comments', auth, async (req, res) => {
       .populate('author', 'name profilePicture')
       .populate('comments.author', 'name profilePicture');
 
+    const caObj = updatedAnswer.toObject ? updatedAnswer.toObject() : updatedAnswer;
+    if (caObj.author && caObj.author.profilePicture && !caObj.author.profilePicture.startsWith('http')) {
+      caObj.author.profilePicture = `http://localhost:8080${caObj.author.profilePicture}`;
+    }
+    if (Array.isArray(caObj.comments)) {
+      caObj.comments = caObj.comments.map(c => {
+        if (c.author && c.author.profilePicture && !c.author.profilePicture.startsWith('http')) {
+          c.author.profilePicture = `http://localhost:8080${c.author.profilePicture}`;
+        }
+        return c;
+      });
+    }
+
     // Emit socket event for new comment
     emitNewComment(answer.question, answer._id, comment);
 
-    res.json(updatedAnswer);
+    res.json(caObj);
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).json({ message: 'Error adding comment' });

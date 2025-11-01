@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
  * @property {string[]} departments
  * @property {string} establishedYear
  * @property {string} accreditation
- * @property {string} ranking
+ 
  * @property {string} image
  */
 
@@ -31,7 +31,7 @@ import { Label } from "@/components/ui/label";
  * @property {string} departments
  * @property {string} establishedYear
  * @property {string} accreditation
- * @property {string} ranking
+ 
  * @property {File|null} image
  */
 
@@ -56,7 +56,7 @@ function EditCollegeDialog({ open, onOpenChange, onSuccess, college }) {
     departments: college.departments.join(", "),
     establishedYear: college.establishedYear || "",
     accreditation: college.accreditation || "",
-    ranking: college.ranking || "",
+    
     image: null
   };
   const [formData, setFormData] = useState(initialFormData);
@@ -177,15 +177,7 @@ function EditCollegeDialog({ open, onOpenChange, onSuccess, college }) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="ranking">Ranking</Label>
-              <Input
-                id="ranking"
-                type="number"
-                value={formData.ranking}
-                onChange={(e) => handleInputChange(e, 'ranking')}
-              />
-            </div>
+            
 
             <div className="space-y-2">
               <Label htmlFor="accreditation">Accreditation</Label>
@@ -245,7 +237,6 @@ EditCollegeDialog.propTypes = {
     departments: PropTypes.arrayOf(PropTypes.string).isRequired,
     establishedYear: PropTypes.string,
     accreditation: PropTypes.string,
-    ranking: PropTypes.string,
     image: PropTypes.string
   }).isRequired
 };

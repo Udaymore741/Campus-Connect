@@ -93,8 +93,7 @@ router.post('/', adminAuth, upload.single('image'), async (req, res) => {
       contactInfo,
       website, 
       departments, 
-      accreditation, 
-      ranking 
+      accreditation 
     } = req.body;
 
     if (!name || !description || !location || !established || !contactInfo || !req.file) {
@@ -122,7 +121,6 @@ router.post('/', adminAuth, upload.single('image'), async (req, res) => {
       website,
       departments: departments ? JSON.parse(departments) : [],
       accreditation,
-      ranking: ranking ? parseInt(ranking) : undefined,
       createdBy: req.userId
     });
 
@@ -162,9 +160,7 @@ router.patch('/:id', adminAuth, upload.single('image'), async (req, res) => {
       updates.departments = JSON.parse(updates.departments);
     }
 
-    if (updates.ranking) {
-      updates.ranking = parseInt(updates.ranking);
-    }
+    
 
     const college = await College.findByIdAndUpdate(
       req.params.id,

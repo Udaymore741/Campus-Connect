@@ -78,7 +78,24 @@ router.get('/college/:collegeId', async (req, res) => {
         });
     }
 
-    res.json(questions);
+    // Normalize author profile picture URLs
+    const normalized = questions.map(q => {
+      const qObj = q.toObject ? q.toObject() : q;
+      if (qObj.author && qObj.author.profilePicture && !qObj.author.profilePicture.startsWith('http')) {
+        qObj.author.profilePicture = `http://localhost:8080${qObj.author.profilePicture}`;
+      }
+      if (Array.isArray(qObj.answers)) {
+        qObj.answers = qObj.answers.map(a => {
+          if (a.author && a.author.profilePicture && !a.author.profilePicture.startsWith('http')) {
+            a.author.profilePicture = `http://localhost:8080${a.author.profilePicture}`;
+          }
+          return a;
+        });
+      }
+      return qObj;
+    });
+
+    res.json(normalized);
   } catch (error) {
     console.error('Error fetching questions:', error);
     res.status(500).json({ 
@@ -98,7 +115,7 @@ router.get('/:id', async (req, res) => {
     }
 
     const question = await Question.findById(req.params.id)
-      .populate('author', 'name profilePicture')
+      .populate('author', 'name profilePicture role department year rollNumber cgpa position qualification specialization experience email')
       .populate({
         path: 'answers',
         populate: {
@@ -115,7 +132,21 @@ router.get('/:id', async (req, res) => {
     question.views += 1;
     await question.save();
 
-    res.json(question);
+    // Normalize URLs for single question response
+    const qObj = question.toObject ? question.toObject() : question;
+    if (qObj.author && qObj.author.profilePicture && !qObj.author.profilePicture.startsWith('http')) {
+      qObj.author.profilePicture = `http://localhost:8080${qObj.author.profilePicture}`;
+    }
+    if (Array.isArray(qObj.answers)) {
+      qObj.answers = qObj.answers.map(a => {
+        if (a.author && a.author.profilePicture && !a.author.profilePicture.startsWith('http')) {
+          a.author.profilePicture = `http://localhost:8080${a.author.profilePicture}`;
+        }
+        return a;
+      });
+    }
+
+    res.json(qObj);
   } catch (error) {
     console.error('Error fetching question:', error);
     if (error.name === 'CastError') {

@@ -49,20 +49,20 @@ export default function Navbar() {
   return (
     <nav
       className={cn(
-        "fixed w-full top-0 z-50 transition-all duration-300 px-6",
-        isScrolled ? "py-3 nav-blur backdrop-blur-md bg-background/80 shadow-sm" : "py-5"
+        "fixed w-full top-0 z-50 transition-all duration-300 px-3 md:px-6",
+        isScrolled ? "py-2 md:py-3 nav-blur backdrop-blur-md bg-background/80 shadow-sm" : "py-3 md:py-5"
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center">
-          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-fade-in">
             CampusConnect
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden md:flex items-center space-x-6 animate-fade-in">
           {user ? (
             <>
               <Link to="/my-hub" className="text-foreground/80 hover:text-primary transition-colors">
@@ -79,7 +79,7 @@ export default function Navbar() {
         </div>
 
         {/* User Actions */}
-        <div className="hidden md:flex items-center space-x-4">
+        <div className="hidden md:flex items-center space-x-4 animate-fade-in">
           <ThemeToggle />
           {user ? (
             <div className="relative profile-menu">
@@ -104,7 +104,7 @@ export default function Navbar() {
               </button>
               
               {showProfileMenu && (
-                <div className="profile-menu absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border">
+                <div className="profile-menu absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card border border-border animate-fade-in">
                   <div className="py-1">
                     {user.role === 'admin' && (
                       <Link
@@ -151,7 +151,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="flex items-center space-x-3 md:hidden">
+        <div className="flex items-center space-x-2 md:hidden">
           <ThemeToggle />
           {user ? (
             <>
@@ -175,27 +175,27 @@ export default function Navbar() {
           ) : null}
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 rounded-md text-foreground"
+            className="p-1.5 rounded-md text-foreground hover:bg-muted transition-colors"
           >
-            {isMenuOpen ? <X /> : <Menu />}
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       <div className={cn(
-        "fixed inset-0 bg-background/80 backdrop-blur-sm md:hidden transition-opacity duration-300",
-        isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        "fixed inset-0 bg-background/95 backdrop-blur-md z-50 md:hidden transition-transform duration-300 ease-in-out",
+        isMenuOpen ? "translate-x-0" : "translate-x-full"
       )}>
-        <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
+        <div className="fixed inset-y-0 right-0 w-full bg-background shadow-2xl p-4 overflow-y-auto">
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="absolute top-5 right-5"
+            className="absolute top-4 right-4 p-2 rounded-lg hover:bg-muted transition-colors"
           >
             <X className="h-6 w-6" />
           </button>
           
-          <div className="mt-8 space-y-4">
+          <div className="mt-12 space-y-3">
             {user ? (
               <>
                 <Link

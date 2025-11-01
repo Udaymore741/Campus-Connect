@@ -49,7 +49,7 @@ export default function CollegeCard({ college, minimal = false }) {
   };
 
   return (
-    <div className="bg-card rounded-xl shadow-md border border-border overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="bg-card rounded-xl shadow-md border border-border overflow-hidden hover:shadow-lg transition-shadow card-hover animate-fade-in">
       <div className="aspect-video relative">
         {!imageError ? (
           <img

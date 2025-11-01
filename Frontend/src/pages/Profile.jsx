@@ -12,6 +12,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import CompleteProfilePrompt from "@/components/CompleteProfilePrompt";
 import { Badge } from "@/components/ui/badge";
+import BackButton from "@/components/BackButton";
 
 export default function Profile() {
   const { user, updateProfile, logout } = useAuth();
@@ -466,17 +467,20 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 pt-32 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="container mx-auto px-2 md:px-4 pt-20 md:pt-32 pb-16 animate-fade-in">
+        <div className="mb-4 md:mb-6">
+          <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Left Column - Profile Info */}
           <div className="md:col-span-1 space-y-6">
-            <div className="bg-card rounded-lg shadow-sm p-6">
+            <div className="bg-card rounded-lg shadow-sm p-6 animate-fade-in">
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img
                     src={userData.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random`}
                     alt={userData.name}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-primary"
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary"
                   />
                   {isOwnProfile && (
                     <button

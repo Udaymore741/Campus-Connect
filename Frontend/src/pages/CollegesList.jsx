@@ -4,6 +4,7 @@ import { Users, MessageSquare, School, CheckCircle2, UserPlus, ArrowRight } from
 import axios from "axios";
 import { toast } from "sonner";
 import { useAuth } from "../contexts/AuthContext";
+import BackButton from "@/components/BackButton";
 
 export default function CollegesList() {
   const [colleges, setColleges] = useState([]);
@@ -92,9 +93,12 @@ export default function CollegesList() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container max-w-7xl mx-auto px-4 pt-28 pb-16">
-        <h1 className="text-3xl font-bold mb-4 text-foreground">Colleges</h1>
-        <p className="text-muted-foreground mb-8">Browse and connect with college communities</p>
+      <main className="container max-w-7xl mx-auto px-2 md:px-4 pt-20 md:pt-28 pb-16">
+        <div className="mb-4 md:mb-6">
+          <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 text-foreground">Colleges</h1>
+        <p className="text-sm md:text-base text-muted-foreground mb-6 md:mb-8">Browse and connect with college communities</p>
 
         <div className="grid gap-6">
           {colleges.map((college) => (

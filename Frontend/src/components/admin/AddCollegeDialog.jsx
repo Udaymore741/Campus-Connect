@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label";
  * @property {string} departments
  * @property {string} established
  * @property {string} accreditation
- * @property {string} ranking
  * @property {string} contactInfo
  * @property {string} courses
  * @property {string} facilities
@@ -42,7 +41,6 @@ function AddCollegeDialog({ open, onOpenChange, onSuccess }) {
     departments: "",
     established: "",
     accreditation: "",
-    ranking: "",
     contactInfo: "",
     courses: "",
     facilities: "",
@@ -205,15 +203,7 @@ function AddCollegeDialog({ open, onOpenChange, onSuccess }) {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ranking">Ranking</Label>
-                <Input
-                  id="ranking"
-                  type="number"
-                  value={formData.ranking}
-                  onChange={(e) => handleInputChange(e, 'ranking')}
-                />
-              </div>
+              
 
               <div className="space-y-2">
                 <Label htmlFor="accreditation">Accreditation</Label>

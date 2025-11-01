@@ -14,7 +14,18 @@ const router = Router();
 router.get('/users', adminAuth, async (req, res) => {
   try {
     const users = await User.find({}, '-password').sort({ createdAt: -1 });
-    res.json(users);
+
+    // Normalize profile picture URLs to absolute
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const normalized = users.map(u => {
+      const obj = u.toObject();
+      if (obj.profilePicture && !obj.profilePicture.startsWith('http')) {
+        obj.profilePicture = `${baseUrl}${obj.profilePicture}`;
+      }
+      return obj;
+    });
+
+    res.json(normalized);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users' });

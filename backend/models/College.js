@@ -51,9 +51,7 @@ const collegeSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  ranking: {
-    type: Number
-  },
+  
   questionsCount: {
     type: Number,
     default: 0

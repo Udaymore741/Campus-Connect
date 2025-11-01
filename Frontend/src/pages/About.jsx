@@ -10,6 +10,7 @@ import {
   Target,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import BackButton from "@/components/BackButton";
 
 const features = [
   {
@@ -52,18 +53,21 @@ const features = [
 
 const About = () => {
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-2 md:px-4 py-16 pt-20 md:pt-28">
+      <div className="mb-4 md:mb-6">
+        <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+      </div>
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-16"
+        className="text-center mb-12 md:mb-16"
       >
-        <h1 className="text-4xl font-bold tracking-tight mb-4">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight mb-3 md:mb-4">
           About CampusConnect
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
           Your trusted platform for college-related discussions, knowledge sharing,
           and academic support. We're building a community where students help
           students succeed.

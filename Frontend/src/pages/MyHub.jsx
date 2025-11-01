@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Users, MessageSquare, School } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import BackButton from "@/components/BackButton";
 
 export default function MyHub() {
   const [enrolledColleges, setEnrolledColleges] = useState([]);
@@ -94,11 +95,14 @@ export default function MyHub() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container max-w-7xl mx-auto px-4 pt-28 pb-16">
-        <div className="flex items-center justify-between mb-8">
+      <main className="container max-w-7xl mx-auto px-2 md:px-4 pt-20 md:pt-28 pb-16">
+        <div className="mb-4 md:mb-6">
+          <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+        </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">My Hubs</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">My Hubs</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Quick access to your joined college communities
             </p>
           </div>

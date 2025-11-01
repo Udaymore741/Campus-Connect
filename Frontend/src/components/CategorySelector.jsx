@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
  * @param {{ selectedCategory: string | null, onSelectCategory: (category: string | null) => void }} props
  */
 export default function CategorySelector({ selectedCategory, onSelectCategory }) {
+  const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   return (
     <div className="overflow-x-auto pb-2 -mx-2 px-2">
       <div className="flex space-x-2 min-w-max">
@@ -20,7 +21,7 @@ export default function CategorySelector({ selectedCategory, onSelectCategory })
           All
         </button>
         
-        {categories.map((category) => (
+        {sortedCategories.map((category) => (
           <button
             key={category.id}
             onClick={() => onSelectCategory(category.slug)}

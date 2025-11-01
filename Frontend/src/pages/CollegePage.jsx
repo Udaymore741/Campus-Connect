@@ -4,6 +4,7 @@ import { categories } from "../data/mockData";
 import axios from "axios";
 import { School, Check } from "lucide-react";
 import { toast } from "sonner";
+import BackButton from "@/components/BackButton";
 
 export default function CollegePage() {
   const { id } = useParams();
@@ -107,9 +108,12 @@ export default function CollegePage() {
 
   return (
     <div className="min-h-screen bg-background">      
-      <main className="container max-w-7xl mx-auto px-4 pt-20 pb-16">
+      <main className="container max-w-7xl mx-auto px-2 md:px-4 pt-16 md:pt-20 pb-16">
+        <div className="mb-4 md:mb-6">
+          <BackButton fallbackTo="/colleges" label="Back" className="text-sm px-3 py-1.5" />
+        </div>
         {/* Large College Image */}
-        <div className="w-full h-[400px] rounded-xl overflow-hidden mb-8 relative">
+        <div className="w-full h-[400px] rounded-xl overflow-hidden mb-8 relative animate-fade-in">
           {!imageError ? (
             <img
               src={imageUrl}
@@ -155,15 +159,57 @@ export default function CollegePage() {
         </div>
 
         {/* College Name */}
-        <h1 className="text-4xl font-bold mb-6 text-foreground">{college.name}</h1>
+        <h1 className="text-4xl font-bold mb-6 text-foreground animate-fade-in">{college.name}</h1>
 
         {/* College Description */}
-        <div className="prose prose-lg dark:prose-invert max-w-none mb-8">
+        <div className="prose prose-lg dark:prose-invert max-w-none mb-8 animate-fade-in">
           <p className="text-xl text-muted-foreground">{college.description}</p>
         </div>
 
-        {/* Other College Information */}
-        <div className="grid gap-6 bg-card rounded-xl p-6 border border-border">
+        {/* Questions & Categories Cards placed above details */}
+        <div className="grid md:grid-cols-3 gap-6 mt-8 animate-fade-in">
+          <button
+            className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full"
+            onClick={() => {
+              setActiveSection('questions');
+              navigate(`/questions?college=${college._id}`);
+            }}
+          >
+            <h2 className="text-xl font-semibold mb-2">Questions</h2>
+            <p className="text-3xl font-bold text-primary">
+              {(college.questionsCount || 0).toLocaleString()}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Total questions asked
+            </p>
+          </button>
+
+          <button
+            className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full"
+            onClick={() => setActiveSection('categories')}
+          >
+            <h2 className="text-xl font-semibold mb-2">Categories</h2>
+            <div className="flex flex-wrap gap-2">
+              {categories.slice(0, 3).map((category) => (
+                <span
+                  key={category.id}
+                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+                >
+                  {category.name}
+                </span>
+              ))}
+              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                +{categories.length - 3} more
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              Click to explore all categories
+            </p>
+          </button>
+        </div>
+
+        {/* Other College Information - moved below cards */}
+        <div className="grid gap-6 bg-card rounded-xl p-6 border border-border mt-8 animate-fade-in">
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">College Details</h2>
             
@@ -217,58 +263,6 @@ export default function CollegePage() {
               </div>
             )}
           </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 mt-8">
-          <button
-            className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full"
-            onClick={() => {
-              setActiveSection('questions');
-              navigate(`/questions?college=${college._id}`);
-            }}
-          >
-            <h2 className="text-xl font-semibold mb-2">Questions</h2>
-            <p className="text-3xl font-bold text-primary">
-              {(college.questionsCount || 0).toLocaleString()}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Total questions asked
-            </p>
-          </button>
-
-          <button
-            className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full"
-            onClick={() => setActiveSection('categories')}
-          >
-            <h2 className="text-xl font-semibold mb-2">Categories</h2>
-            <div className="flex flex-wrap gap-2">
-              {categories.slice(0, 3).map((category) => (
-                <span
-                  key={category.id}
-                  className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
-                >
-                  {category.name}
-                </span>
-              ))}
-              <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                +{categories.length - 3} more
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-4">
-              Click to explore all categories
-            </p>
-          </button>
-
-          <button
-            className="bg-card text-card-foreground rounded-lg shadow-md dark:shadow-primary/5 border border-border p-6 hover:shadow-lg dark:hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-1 w-full"
-            onClick={() => navigate(`/ranking?college=${id}`)}
-          >
-            <h2 className="text-xl font-semibold mb-2">Ranking</h2>
-            <p className="text-3xl font-bold text-primary">#{college.rank || 'N/A'}</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Your current rank
-            </p>
-          </button>
         </div>
 
         {activeSection === 'categories' && (

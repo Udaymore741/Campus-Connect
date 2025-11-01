@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import BackButton from "@/components/BackButton";
 
 export default function Questions() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -192,63 +193,66 @@ export default function Questions() {
     <div className="min-h-screen">
       <Navbar />
       
-      <main className="pt-24 pb-16 px-4 md:px-6">
+      <main className="pt-20 md:pt-24 pb-16 px-2 md:px-6 animate-fade-in">
         <div className="container max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="mb-4 md:mb-6">
+            <BackButton fallbackTo="/" label="Back" className="text-sm px-3 py-1.5" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <h1 className="text-3xl font-bold mb-6">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 animate-fade-in">
                 {collegeName ? `${collegeName} / Questions` : 'Questions'}
               </h1>
               
               {/* Search and Filters */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="relative flex-1 max-w-md">
+              <div className="mb-6 animate-fade-in">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                  <div className="relative flex-1 w-full">
                     <input
                       type="text"
                       placeholder="Search questions..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full pl-10 pr-4 py-2 text-sm md:text-base rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                     />
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
                     <button
                       onClick={() => setSortOrder('newest')}
-                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition-colors ${
+                      className={`flex items-center gap-1 px-2 md:px-3 py-1.5 text-xs md:text-sm rounded-md transition-colors whitespace-nowrap ${
                         sortOrder === 'newest'
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary text-foreground hover:bg-secondary/80'
                       }`}
                     >
-                      <SortDesc className="h-4 w-4" />
+                      <SortDesc className="h-3 w-3 md:h-4 md:w-4" />
                       Newest
                     </button>
                     
                     <button
                       onClick={() => setSortOrder('most-answered')}
-                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition-colors ${
+                      className={`flex items-center gap-1 px-2 md:px-3 py-1.5 text-xs md:text-sm rounded-md transition-colors whitespace-nowrap ${
                         sortOrder === 'most-answered'
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary text-foreground hover:bg-secondary/80'
                       }`}
                     >
-                      <SortAsc className="h-4 w-4" />
+                      <SortAsc className="h-3 w-3 md:h-4 md:w-4" />
                       Most Answered
                     </button>
 
                     <button
                       onClick={() => setSortOrder('most-viewed')}
-                      className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition-colors ${
+                      className={`flex items-center gap-1 px-2 md:px-3 py-1.5 text-xs md:text-sm rounded-md transition-colors whitespace-nowrap ${
                         sortOrder === 'most-viewed'
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary text-foreground hover:bg-secondary/80'
                       }`}
                     >
-                      <SortAsc className="h-4 w-4" />
+                      <SortAsc className="h-3 w-3 md:h-4 md:w-4" />
                       Most Viewed
                     </button>
                   </div>
@@ -261,7 +265,7 @@ export default function Questions() {
               </div>
               
               {/* Questions List */}
-              <div className="space-y-6">
+              <div className="space-y-3 md:space-y-6 animate-fade-in">
                 {loading ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
@@ -277,12 +281,13 @@ export default function Questions() {
                     </button>
                   </div>
                 ) : questions.length > 0 ? (
-                  questions.map((question) => (
-                    <QuestionCard 
-                      key={question._id} 
-                      question={question}
-                      onAnswerAdded={handleAnswerAdded}
-                    />
+                  questions.map((question, idx) => (
+                    <div key={question._id} style={{ animationDelay: `${idx * 60}ms` }} className="animate-fade-in">
+                      <QuestionCard 
+                        question={question}
+                        onAnswerAdded={handleAnswerAdded}
+                      />
+                    </div>
                   ))
                 ) : (
                   <div className="text-center py-8">
@@ -299,10 +304,10 @@ export default function Questions() {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <div className="sticky top-24">
-                <div className="bg-background border border-border rounded-2xl shadow-lg p-8">
-                  <h1 className="text-2xl font-bold text-foreground mb-6 text-center">Ask a Question</h1>
-                  <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="sticky top-20 md:top-24">
+                <div className="bg-background border border-border rounded-xl md:rounded-2xl shadow-lg p-4 md:p-8">
+                  <h1 className="text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-6 text-center">Ask a Question</h1>
+                  <form onSubmit={handleSubmit} className="space-y-3 md:space-y-5">
                     <div>
                       <label htmlFor="question-title" className="block text-sm font-medium text-foreground mb-1">Title</label>
                       <input

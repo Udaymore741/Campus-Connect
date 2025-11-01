@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import QuestionCard from "@/components/QuestionCard";
 import AnswerCard from "@/components/AnswerCard";
 import Navbar from "@/components/Navbar";
+import BackButton from "@/components/BackButton";
 
 export default function QuestionDetail() {
   const { id } = useParams();
@@ -144,19 +145,24 @@ export default function QuestionDetail() {
     <div className="min-h-screen">
       <Navbar />
       
-      <main className="pt-24 pb-16 px-4 md:px-6">
+      <main className="pt-20 md:pt-24 pb-16 px-2 md:px-6 animate-fade-in">
         <div className="container max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="mb-4 md:mb-6">
+            <BackButton fallbackTo="/questions" label="Back" className="text-sm px-3 py-1.5" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-4 md:space-y-8">
           {/* Question */}
-          <QuestionCard question={question} isDetailed />
+          <div className="animate-fade-in">
+            <QuestionCard question={question} isDetailed />
+          </div>
           
               {/* Answer Form */}
               {user ? (
-                <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
-                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
+                <div className="bg-card rounded-lg md:rounded-xl shadow-sm p-4 md:p-6 border border-border animate-fade-in">
+                  <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
                     Your Answer
               </h2>
                   
@@ -166,27 +172,27 @@ export default function QuestionDetail() {
                       onChange={(e) => setNewAnswer(e.target.value)}
                       placeholder="Write your answer here..."
                       rows={4}
-                      className="w-full px-4 py-2 rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y mb-4"
+                      className="w-full px-3 md:px-4 py-2 text-sm md:text-base rounded-lg bg-background border border-input focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y mb-3 md:mb-4"
                     />
                     
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-primary text-primary-foreground px-4 py-2 text-sm md:text-base rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
                     >
                       {submitting ? "Posting..." : "Post Answer"}
                     </button>
                   </form>
                 </div>
               ) : (
-                <div className="bg-card rounded-xl shadow-sm p-6 border border-border text-center">
-                  <p className="text-muted-foreground">Please log in to post an answer</p>
+                <div className="bg-card rounded-lg md:rounded-xl shadow-sm p-4 md:p-6 border border-border text-center animate-fade-in">
+                  <p className="text-sm md:text-base text-muted-foreground">Please log in to post an answer</p>
             </div>
               )}
             
               {/* Answers List */}
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold">
+              <div className="space-y-3 md:space-y-6 animate-fade-in">
+                <h2 className="text-lg md:text-xl font-semibold">
                   {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
                 </h2>
                 
@@ -201,7 +207,7 @@ export default function QuestionDetail() {
                 ))}
                 
                 {answers.length === 0 && (
-                  <p className="text-center text-muted-foreground py-8">
+                  <p className="text-center text-sm md:text-base text-muted-foreground py-6 md:py-8">
                     No answers yet. Be the first to answer!
                   </p>
                 )}
@@ -209,8 +215,114 @@ export default function QuestionDetail() {
               </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1">
-              {/* You can add related questions or other sidebar content here */}
+            <div className="lg:col-span-1 space-y-4 md:space-y-6">
+              {/* Author Profile Card */}
+              <div className="bg-card rounded-lg md:rounded-xl shadow-sm p-4 md:p-6 border border-border animate-fade-in">
+                <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">About the Author</h3>
+                
+                <div className="flex flex-col items-center mb-4">
+                  <img
+                    src={question.author?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(question.author?.name || 'User')}&background=random`}
+                    alt={question.author?.name || 'User'}
+                    className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-primary mb-3"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(question.author?.name || 'User')}&background=random`;
+                    }}
+                  />
+                  <h4 className="text-base md:text-lg font-semibold">{question.author?.name || 'Unknown User'}</h4>
+                  <p className="text-xs md:text-sm text-muted-foreground capitalize">{question.author?.role || 'user'}</p>
+                </div>
+
+                {/* Role-specific information */}
+                {question.author?.email && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Email</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.email}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.department && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Department</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.department}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.year && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Year</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.year}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.rollNumber && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Roll Number</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.rollNumber}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.cgpa && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">CGPA</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.cgpa}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.position && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Position</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.position}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.qualification && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Qualification</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.qualification}</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.experience && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Experience</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.experience} years</span>
+                    </div>
+                  </div>
+                )}
+
+                {question.author?.specialization && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center p-2 bg-background rounded-lg">
+                      <span className="text-xs md:text-sm text-muted-foreground">Specialization</span>
+                      <span className="text-xs md:text-sm font-medium">{question.author.specialization}</span>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => question.author?._id && navigate(`/profile/${question.author._id}`)}
+                  className="w-full mt-4 bg-primary text-primary-foreground px-4 py-2 text-sm rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  View Full Profile
+                </button>
+              </div>
             </div>
           </div>
         </div>
