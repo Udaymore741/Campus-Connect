@@ -1,11 +1,21 @@
 import { Server } from 'socket.io';
+import { getFrontendUrl } from '../utils/urlHelper.js';
 
 let io;
 
 const initializeSocket = (server) => {
+  const frontendUrl = getFrontendUrl();
+  const allowedOrigins = process.env.CORS_ORIGINS 
+    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+    : [
+        frontendUrl,
+        'http://localhost:5173',
+        'http://127.0.0.1:5173'
+      ];
+
   io = new Server(server, {
     cors: {
-      origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
       credentials: true
     }

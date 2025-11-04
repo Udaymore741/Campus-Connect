@@ -11,6 +11,7 @@ import {
   emitAnswerLikeUpdate,
   emitNewComment
 } from '../services/socketService.js';
+import { normalizeUrl } from '../utils/urlHelper.js';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.get('/:id', async (req, res) => {
     // Normalize profile picture URL
     const aObj = answer.toObject ? answer.toObject() : answer;
     if (aObj.author && aObj.author.profilePicture && !aObj.author.profilePicture.startsWith('http')) {
-      aObj.author.profilePicture = `http://localhost:8080${aObj.author.profilePicture}`;
+      aObj.author.profilePicture = normalizeUrl(aObj.author.profilePicture);
     }
     res.json(aObj);
   } catch (error) {
@@ -47,7 +48,7 @@ router.get('/question/:questionId', async (req, res) => {
     const normalized = answers.map(a => {
       const aObj = a.toObject ? a.toObject() : a;
       if (aObj.author && aObj.author.profilePicture && !aObj.author.profilePicture.startsWith('http')) {
-        aObj.author.profilePicture = `http://localhost:8080${aObj.author.profilePicture}`;
+        aObj.author.profilePicture = normalizeUrl(aObj.author.profilePicture);
       }
       return aObj;
     });
@@ -83,7 +84,7 @@ router.post('/', auth, contentFilter, async (req, res) => {
     // Normalize URL
     const paObj = populatedAnswer.toObject ? populatedAnswer.toObject() : populatedAnswer;
     if (paObj.author && paObj.author.profilePicture && !paObj.author.profilePicture.startsWith('http')) {
-      paObj.author.profilePicture = `http://localhost:8080${paObj.author.profilePicture}`;
+      paObj.author.profilePicture = normalizeUrl(paObj.author.profilePicture);
     }
 
     // Emit socket event for new answer
@@ -119,7 +120,7 @@ router.put('/:id', auth, async (req, res) => {
 
     const uaObj = updatedAnswer.toObject ? updatedAnswer.toObject() : updatedAnswer;
     if (uaObj.author && uaObj.author.profilePicture && !uaObj.author.profilePicture.startsWith('http')) {
-      uaObj.author.profilePicture = `http://localhost:8080${uaObj.author.profilePicture}`;
+      uaObj.author.profilePicture = normalizeUrl(uaObj.author.profilePicture);
     }
 
     // Emit socket event for answer update
@@ -247,12 +248,12 @@ router.post('/:id/comments', auth, async (req, res) => {
 
     const caObj = updatedAnswer.toObject ? updatedAnswer.toObject() : updatedAnswer;
     if (caObj.author && caObj.author.profilePicture && !caObj.author.profilePicture.startsWith('http')) {
-      caObj.author.profilePicture = `http://localhost:8080${caObj.author.profilePicture}`;
+      caObj.author.profilePicture = normalizeUrl(caObj.author.profilePicture);
     }
     if (Array.isArray(caObj.comments)) {
       caObj.comments = caObj.comments.map(c => {
         if (c.author && c.author.profilePicture && !c.author.profilePicture.startsWith('http')) {
-          c.author.profilePicture = `http://localhost:8080${c.author.profilePicture}`;
+          c.author.profilePicture = normalizeUrl(c.author.profilePicture);
         }
         return c;
       });

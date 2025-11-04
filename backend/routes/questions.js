@@ -11,6 +11,7 @@ import {
   emitLikeUpdate 
 } from '../services/socketService.js';
 import { moderateContent } from '../utils/contentModerator.js';
+import { normalizeUrl } from '../utils/urlHelper.js';
 
 const router = Router();
 
@@ -82,12 +83,12 @@ router.get('/college/:collegeId', async (req, res) => {
     const normalized = questions.map(q => {
       const qObj = q.toObject ? q.toObject() : q;
       if (qObj.author && qObj.author.profilePicture && !qObj.author.profilePicture.startsWith('http')) {
-        qObj.author.profilePicture = `http://localhost:8080${qObj.author.profilePicture}`;
+        qObj.author.profilePicture = normalizeUrl(qObj.author.profilePicture);
       }
       if (Array.isArray(qObj.answers)) {
         qObj.answers = qObj.answers.map(a => {
           if (a.author && a.author.profilePicture && !a.author.profilePicture.startsWith('http')) {
-            a.author.profilePicture = `http://localhost:8080${a.author.profilePicture}`;
+            a.author.profilePicture = normalizeUrl(a.author.profilePicture);
           }
           return a;
         });
@@ -135,12 +136,12 @@ router.get('/:id', async (req, res) => {
     // Normalize URLs for single question response
     const qObj = question.toObject ? question.toObject() : question;
     if (qObj.author && qObj.author.profilePicture && !qObj.author.profilePicture.startsWith('http')) {
-      qObj.author.profilePicture = `http://localhost:8080${qObj.author.profilePicture}`;
+      qObj.author.profilePicture = normalizeUrl(qObj.author.profilePicture);
     }
     if (Array.isArray(qObj.answers)) {
       qObj.answers = qObj.answers.map(a => {
         if (a.author && a.author.profilePicture && !a.author.profilePicture.startsWith('http')) {
-          a.author.profilePicture = `http://localhost:8080${a.author.profilePicture}`;
+          a.author.profilePicture = normalizeUrl(a.author.profilePicture);
         }
         return a;
       });

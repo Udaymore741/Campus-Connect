@@ -8,6 +8,7 @@ import { adminAuth } from '../middleware/adminAuth.js';
 import { auth } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 import jwt from 'jsonwebtoken';
+import { normalizeUrl } from '../utils/urlHelper.js';
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.get('/', async (req, res) => {
       
       return {
         ...college.toObject(),
-        image: college.image ? `http://localhost:8080${college.image}` : '',
+        image: college.image ? normalizeUrl(college.image) : '',
         isEnrolled: userEnrollments.includes(college._id.toString()),
         members: memberCount,
         questionsCount: questionCount
@@ -67,7 +68,7 @@ router.get('/:id', async (req, res) => {
 
     const collegeData = {
       ...college.toObject(),
-      image: college.image ? `http://localhost:8080${college.image}` : '',
+      image: college.image ? normalizeUrl(college.image) : '',
       members: memberCount,
       questionsCount: questionCount
     };
@@ -127,7 +128,7 @@ router.post('/', adminAuth, upload.single('image'), async (req, res) => {
     await college.save();
     
     const collegeData = college.toObject();
-    collegeData.image = `http://localhost:8080${college.image}`;
+    collegeData.image = normalizeUrl(college.image);
     
     res.status(201).json({
       message: 'College added successfully',
@@ -173,7 +174,7 @@ router.patch('/:id', adminAuth, upload.single('image'), async (req, res) => {
     }
 
     const collegeData = college.toObject();
-    collegeData.image = college.image ? `http://localhost:8080${college.image}` : '';
+    collegeData.image = college.image ? normalizeUrl(college.image) : '';
     
     res.json({
       message: 'College updated successfully',

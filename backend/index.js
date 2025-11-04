@@ -17,6 +17,7 @@ import User from './models/User.js';
 import { auth } from './middleware/auth.js';
 import upload from './middleware/upload.js';
 import { errorHandler } from './utils/errorHandler.js';
+import { normalizeUrl, getFrontendUrl } from './utils/urlHelper.js';
 import collegeRoutes from './routes/collegeRoutes.js';
 import enrollmentRoutes from './routes/enrollment.js';
 import questionRoutes from './routes/questions.js';
@@ -49,8 +50,38 @@ const verificationDir = path.join(uploadsDir, 'verification');
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Configure CORS based on environment
+const frontendUrl = getFrontendUrl();
+const allowedOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      frontendUrl,
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3000'
+    ];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like server-to-server, mobile apps, or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // In development, allow all origins for easier testing
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // In production, only allow origins from the allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS: Blocked request from origin: ${origin}`);
+      callback(new Error(`CORS: Origin ${origin} not allowed`));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -297,7 +328,7 @@ app.post('/api/login', async (req, res) => {
         email: user.email,
         role: user.role,
         isAdmin: user.role === 'admin',
-        profilePicture: user.profilePicture ? `http://localhost:8080${user.profilePicture}` : ''
+        profilePicture: user.profilePicture ? normalizeUrl(user.profilePicture) : ''
       }
     });
   } catch (error) {
@@ -322,7 +353,7 @@ app.get('/api/profile', auth, async (req, res) => {
     // Add full URL to profile picture
     const userData = user.toObject();
     if (userData.profilePicture) {
-      userData.profilePicture = `http://localhost:8080${userData.profilePicture}`;
+      userData.profilePicture = normalizeUrl(userData.profilePicture);
     }
     
     res.json(userData);
@@ -361,7 +392,7 @@ app.patch('/api/profile', auth, upload.single('profilePicture'), async (req, res
     // Add full URL to profile picture in response
     const userData = user.toObject();
     if (userData.profilePicture) {
-      userData.profilePicture = `http://localhost:8080${userData.profilePicture}`;
+      userData.profilePicture = normalizeUrl(userData.profilePicture);
     }
 
     res.json(userData);
@@ -412,7 +443,7 @@ app.get('/api/users', auth, async (req, res) => {
     const usersWithFullUrls = users.map(user => {
       const userData = user.toObject();
       if (userData.profilePicture) {
-        userData.profilePicture = `http://localhost:8080${userData.profilePicture}`;
+        userData.profilePicture = normalizeUrl(userData.profilePicture);
       }
       return userData;
     });

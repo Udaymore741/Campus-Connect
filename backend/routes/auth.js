@@ -5,15 +5,16 @@ import User from '../models/User.js';
 import {auth} from '../middleware/auth.js';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { normalizeUrl, getFrontendUrl } from '../utils/urlHelper.js';
 
 const router = Router();
 
-// Create email transporter with hardcoded values for testing
+// Create email transporter with environment variables
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'udaymore742@gmail.com',
-    pass: 'euhw ward izif xgni'
+    user: process.env.EMAIL_USER || 'udaymore742@gmail.com',
+    pass: process.env.EMAIL_PASS || 'euhw ward izif xgni'
   }
 });
 
@@ -76,7 +77,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
         isAdmin: user.role === 'admin',
-        profilePicture: user.profilePicture ? `http://localhost:8080${user.profilePicture}` : null
+        profilePicture: user.profilePicture ? normalizeUrl(user.profilePicture) : null
       }
     });
   } catch (error) {
@@ -161,7 +162,7 @@ router.get('/status', auth, async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        profilePicture: user.profilePicture ? `http://localhost:8080${user.profilePicture}` : ''
+        profilePicture: user.profilePicture ? normalizeUrl(user.profilePicture) : ''
       }
     });
   } catch (error) {
@@ -188,9 +189,10 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
 
     // Send email
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const frontendUrl = getFrontendUrl();
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
     const mailOptions = {
-      from: 'udaymore742@gmail.com',
+      from: process.env.EMAIL_USER || 'udaymore742@gmail.com',
       to: user.email,
       subject: 'Password Reset Request',
       html: `

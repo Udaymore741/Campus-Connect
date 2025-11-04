@@ -3,6 +3,7 @@ import { Router } from 'express';
 import User from '../models/User.js';
 import { auth } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
+import { normalizeUrl } from '../utils/urlHelper.js';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.get('/', auth, async (req, res) => {
 
     // Ensure profile picture URL is complete
     if (user.profilePicture && !user.profilePicture.startsWith('http')) {
-      user.profilePicture = `http://localhost:8080${user.profilePicture}`;
+      user.profilePicture = normalizeUrl(user.profilePicture);
     }
 
     res.json(user);
@@ -178,7 +179,7 @@ router.post('/upload-picture', auth, upload.single('profilePicture'), async (req
     res.json({
       success: true,
       message: 'Profile picture uploaded successfully',
-      profilePicture: `http://localhost:8080${user.profilePicture}`
+      profilePicture: normalizeUrl(user.profilePicture)
     });
   } catch (error) {
     console.error('Error uploading profile picture:', error);
@@ -255,7 +256,7 @@ router.get('/:userId', auth, async (req, res) => {
 
     // Ensure profile picture URL is complete
     if (user.profilePicture && !user.profilePicture.startsWith('http')) {
-      user.profilePicture = `http://localhost:8080${user.profilePicture}`;
+      user.profilePicture = normalizeUrl(user.profilePicture);
     }
 
     res.json(user);
