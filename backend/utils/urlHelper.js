@@ -7,13 +7,17 @@ export const getBaseUrl = () => {
   if (process.env.BACKEND_URL) {
     return process.env.BACKEND_URL;
   }
+  // On Render, prefer the platform-provided external URL if available
+  if (process.env.RENDER_EXTERNAL_URL) {
+    return process.env.RENDER_EXTERNAL_URL;
+  }
   
   // For production, BACKEND_URL should always be set
   // Fallback for development only
   if (process.env.NODE_ENV === 'production') {
     console.warn('WARNING: BACKEND_URL not set in production. Using fallback.');
-    // This fallback may not work correctly in production
-    return `http://localhost:${process.env.PORT || 8080}`;
+    // Best-effort: try to build https URL from host/port if provided
+    return `https://localhost:${process.env.PORT || 8080}`;
   }
   
   // For local development
