@@ -410,14 +410,27 @@ app.patch('/api/profile', auth, upload.single('profilePicture'), async (req, res
   }
 });
 
-// Check auth status
-app.get('/api/auth/status', auth, async (req, res) => {
+// Check auth status (gracefully handle unauthenticated without 401)
+app.get('/api/auth/status', async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
-    if (!user) {
-      return res.status(401).json({ authenticated: false });
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(200).json({ authenticated: false });
     }
-    res.json({
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(200).json({ authenticated: false });
+    }
+
+    const user = await User.findById(decoded.userId).select('-password');
+    if (!user) {
+      return res.status(200).json({ authenticated: false });
+    }
+
+    return res.json({
       authenticated: true,
       user: {
         id: user._id,
@@ -428,7 +441,7 @@ app.get('/api/auth/status', auth, async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(401).json({ authenticated: false });
+    return res.status(200).json({ authenticated: false });
   }
 });
 

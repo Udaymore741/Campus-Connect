@@ -152,14 +152,27 @@ router.post('/logout', auth, (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
-// Check auth status
-router.get('/status', auth, async (req, res) => {
+// Check auth status (no 401 for unauthenticated)
+router.get('/status', async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) {
-      return res.status(401).json({ authenticated: false });
+    const token = req.cookies?.token;
+    if (!token) {
+      return res.status(200).json({ authenticated: false });
     }
-    res.json({
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(200).json({ authenticated: false });
+    }
+
+    const user = await User.findById(decoded.userId).select('-password');
+    if (!user) {
+      return res.status(200).json({ authenticated: false });
+    }
+
+    return res.json({
       authenticated: true,
       user: {
         id: user._id,
@@ -170,7 +183,7 @@ router.get('/status', auth, async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(401).json({ authenticated: false });
+    return res.status(200).json({ authenticated: false });
   }
 });
 
