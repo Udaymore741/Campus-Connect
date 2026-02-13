@@ -275,6 +275,4 @@ This project is licensed under the ISC License.
 
 For support and questions, please open an issue in the GitHub repository or contact the development team.
 
----
 
-**Note**: Add a screenshot of the application interface to showcase the user experience and visual design.
